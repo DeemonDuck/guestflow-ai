@@ -1,5 +1,8 @@
 from tools.email_tool import send_email_tool
-from tools.crm_tool import update_crm_tool
+from tools.crm_tool import (
+    update_crm_tool,
+    get_guest_history_tool
+)
 
 
 def handle_prestay(event):
@@ -8,6 +11,10 @@ def handle_prestay(event):
 
     guest_name = event.guest_name
 
+    #Guest History Retrive
+    history = get_guest_history_tool(guest_name)
+    print(f"Previous History: {history}")
+    
     email_result = send_email_tool(
         guest_name,
         "Your booking has been confirmed!"
