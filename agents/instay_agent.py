@@ -1,5 +1,6 @@
 from tools.ticket_tool import create_ticket_tool
 from llm_service import generate_guest_response
+from rag.rag_service import retrieve_faq
 
 
 def handle_instay(event):
@@ -8,27 +9,34 @@ def handle_instay(event):
 
     guest_name = event.guest_name
 
-    # Simulated guest issue
-    guest_issue = "Guest requested extra towels"
+    # Simulated guest question
+    guest_question = "What time is breakfast?"
 
-    # Generate AI response
+    # Retrieve FAQ context
+    faq_result = retrieve_faq(guest_question)
+
+    print(f"\nFAQ MATCH: {faq_result}")
+
+    # Mock AI response
     ai_response = generate_guest_response(
         f"""
-        You are a professional hotel assistant.
+        Guest Question:
+        {guest_question}
 
-        Respond politely to this guest request:
-        {guest_issue}
+        Relevant Hotel Information:
+        {faq_result}
         """
     )
 
     # Create support ticket
     ticket_result = create_ticket_tool(
         guest_name,
-        guest_issue
+        guest_question
     )
 
     return {
         "agent": "InStayAgent",
+        "faq_result": faq_result,
         "ai_response": ai_response,
         "ticket": ticket_result
     }
