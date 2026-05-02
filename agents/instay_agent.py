@@ -44,30 +44,23 @@ def handle_instay(event):
     print(f"\nFAQ MATCH: {faq_result}")
 
     
-    
-    
+
+
     # Mock AI response
     ai_response = generate_guest_response(
         f"""
+        You are a hotel guest support assistant.
+
+        Respond in:
+        - 2 to 3 short sentences
+        - conversational tone
+        - concise style
+        - no email formatting
+        - no greetings/signatures
+
         Guest Question:
         {guest_question}
 
         Relevant Hotel Information:
         {faq_result}
-        """
-    )
-
-    # Create support ticket
-    ticket_result = create_ticket_tool(
-        guest_name,
-        guest_question
-    )
-
-    return {
-        "agent": "InStayAgent",
-        "faq_result": faq_result,
-        "ai_response": ai_response,
-        "ticket": ticket_result,
-        "is_vip": is_vip,
-        "escalation_required": escalation_required,
-    }
+        """)
