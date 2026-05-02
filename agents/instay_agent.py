@@ -10,7 +10,9 @@ def handle_instay(event):
     guest_name = event.guest_name
 
     # Simulated guest question
-    guest_question = "What time is breakfast?"
+    guest_question = event.guest_question
+    if not guest_question:
+        guest_question = "General guest assistance request"
 
     # Retrieve FAQ context
     faq_result = retrieve_faq(guest_question)

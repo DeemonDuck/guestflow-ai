@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from agents.orchestrator import route_event
+from typing import Optional
 
 # Create FastAPI app
 app = FastAPI()
@@ -10,6 +11,7 @@ app = FastAPI()
 class WebhookEvent(BaseModel):
     event_type: str
     guest_name: str
+    guest_question: Optional[str] = None
 
 
 # Create webhook endpoint
