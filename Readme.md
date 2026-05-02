@@ -60,6 +60,36 @@ It uses a multi-agent orchestration architecture to route events dynamically and
 
 ---
 
+# 📊 Dashboard Preview
+
+## Dashboard Home
+
+![Dashboard Home](assets/dashboard_home.png)
+
+---
+
+## Standard Guest Workflow
+
+### API Response
+
+![Standard Response](assets/dashboard_standard_response.png)
+
+### Workflow Analysis
+
+![Standard Analysis](assets/dashboard_standard_analysis.png)
+
+---
+
+## VIP Escalation Workflow
+
+### API Response
+
+![Escalation Response](assets/dashboard_escalation_response.png)
+
+### Workflow Analysis
+
+![Escalation Analysis](assets/dashboard_escalation_analysis.png)
+
 # 🛠️ Tech Stack
 
 | Component    | Technology                        |
