@@ -1,28 +1,14 @@
-import os
-
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
 
 
-# Load environment variables
-load_dotenv()
-
-
-# Initialize LLM
-llm = ChatOpenAI(
-    model="gpt-4.1-mini",
-    temperature=0.7
+llm = ChatOllama(
+    model="phi3",
+    temperature=0.5
 )
 
 
-# def generate_guest_response(prompt):
-
-#     response = llm.invoke(prompt)
-
-#     return response.content
-
 def generate_guest_response(prompt):
 
-    print("\n MOCK LLM RESPONSE GENERATED")
+    response = llm.invoke(prompt)
 
-    return "Certainly! Your request has been received and our hotel staff will assist you shortly."
+    return response.content
