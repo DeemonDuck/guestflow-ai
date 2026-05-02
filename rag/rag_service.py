@@ -3,15 +3,20 @@ def retrieve_faq(query):
     with open("rag/hotel_FAQ.txt", "r") as file:
         faq_data = file.readlines()
 
-    query = query.lower()
+    query_words = set(query.lower().split())
 
     best_match = None
+    highest_score = 0
 
     for line in faq_data:
 
-        if any(word in line.lower() for word in query.split()):
+        line_words = set(line.lower().split())
+
+        score = len(query_words.intersection(line_words))
+
+        if score > highest_score:
+            highest_score = score
             best_match = line.strip()
-            break
 
     if best_match:
         return best_match
