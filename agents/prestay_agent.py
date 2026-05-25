@@ -5,7 +5,7 @@ from tools.crm_tool import (
 )
 
 from memory import store_memory, retrieve_memory
-
+from llm_service import generate_guest_response
 
 def handle_prestay(event):
 
@@ -18,12 +18,44 @@ def handle_prestay(event):
     print(f"Previous History: {history}")
 
     # Qdrant Semantic Memory
-    memory_results = retrieve_memory(event.event_type)
+    memory_results = retrieve_memory(
+        f"{guest_name} booking preferences"
+    )
+    
     print(f"Semantic Memory: {memory_results}")
+
+    memory_context = str(memory_results)
+
+    ai_response = generate_guest_response(
+        f"""
+        You are a luxury hotel booking assistant.
+
+        Respond in:
+        - 2 short conversational sentences
+        - warm hospitality tone
+        - concise style
+        - no email formatting
+        - no greetings/signatures
+
+        Guest Name:
+        {guest_name}
+
+        Guest Event:
+        {event.event_type}
+
+        Previous Guest Memory:
+        {memory_context}
+
+        CRM History:
+        {history}
+
+        Generate a personalized booking confirmation response.
+        """
+    )   
 
     email_result = send_email_tool(
         guest_name,
-        "Your booking has been confirmed!"
+        ai_response
     )
 
     crm_result = update_crm_tool(
@@ -41,5 +73,6 @@ def handle_prestay(event):
         "agent": "PreStayAgent",
         "email": email_result,
         "crm": crm_result,
-        "memory": str(memory_results)
+        "memory": str(memory_results),
+        "ai_response": ai_response,
     }
