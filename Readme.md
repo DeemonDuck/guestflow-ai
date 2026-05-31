@@ -141,7 +141,7 @@ guestflow-ai/
 # 1. Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/guestflow-ai.git
+git clone https://github.com/DeemonDuck/guestflow-ai.git
 ```
 
 ```bash
