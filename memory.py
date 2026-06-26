@@ -50,10 +50,3 @@ def retrieve_memory(query):
 
     return results
 
-# For Temporary Testing
-
-store_memory("rahul", "Guest prefers quiet rooms")
-
-results = retrieve_memory("quiet room preference")
-
-print(results)
