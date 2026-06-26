@@ -1,31 +1,23 @@
-import re
+import chromadb
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
+_client = chromadb.Client()
+_embed_fn = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+_collection = _client.get_or_create_collection("hotel_faq", embedding_function=_embed_fn)
 
-def clean_text(text):
-    return re.findall(r'\w+', text.lower())
+# Load FAQ into ChromaDB on first use
+def _load_faq():
+    if _collection.count() > 0:
+        return
+    with open("rag/hotel_faq.txt", "r") as f:
+        lines = [l.strip() for l in f.readlines() if l.strip()]
+    _collection.add(
+        documents=lines,
+        ids=[str(i) for i in range(len(lines))]
+    )
 
-
-def retrieve_faq(query):
-
-    with open("rag/hotel_faq.txt", "r") as file:
-        faq_data = file.readlines()
-
-    query_words = set(clean_text(query))
-
-    best_match = None
-    highest_score = 0
-
-    for line in faq_data:
-
-        line_words = set(clean_text(line))
-
-        score = len(query_words.intersection(line_words))
-
-        if score > highest_score:
-            highest_score = score
-            best_match = line.strip()
-
-    if best_match:
-        return best_match
-
-    return "Sorry, no relevant hotel information found."
+def retrieve_faq(query: str) -> str:
+    _load_faq()
+    results = _collection.query(query_texts=[query], n_results=1)
+    docs = results.get("documents", [[]])[0]
+    return docs[0] if docs else "Sorry, no relevant hotel information found."
