@@ -9,7 +9,7 @@ def route_event(event):
 
     print(f"Routing Event: {event_type}")
 
-    if event_type == "booking_related":
+    if event_type == "booking_confirmed":
         return handle_prestay(event)
 
     elif event_type == "guest_request":
