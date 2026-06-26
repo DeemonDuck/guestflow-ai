@@ -102,14 +102,8 @@ guest_name = st.sidebar.text_input(
 )
 
 
-event_type = st.sidebar.selectbox(
-    "Event Type",
-    [
-        "booking_confirmed",
-        "guest_request",
-        "checkout_complete"
-    ]
-)
+st.sidebar.caption("💡 Leave blank to auto-detect intent from your message")
+event_type = st.sidebar.text_input("Event Type (optional)")
 
 
 guest_question = st.sidebar.text_area(
@@ -138,6 +132,11 @@ if st.sidebar.button("Trigger Workflow"):
         result = response.json()
 
         st.success("Workflow Executed Successfully")
+
+        # Show detected intent
+        detected = result.get("detected_intent")
+        if detected:
+            st.info(f"🧠 Detected Intent: `{detected}`")
 
         # Full API Response
         st.subheader("Full API Response")

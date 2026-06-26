@@ -1,28 +1,31 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from agents.orchestrator import route_event
+from intent_classifier import classify_intent
 from typing import Optional
 
-# Create FastAPI app
 app = FastAPI()
 
 
-# Define structure of incoming webhook data
 class WebhookEvent(BaseModel):
-    event_type: str
+    event_type: Optional[str] = None
     guest_name: str
     guest_question: Optional[str] = None
 
 
-# Create webhook endpoint
 @app.post("/webhook")
 async def receive_webhook(event: WebhookEvent):
 
-    print("Webhook received!")
+    # Auto-detect intent if event_type not provided
+    if not event.event_type:
+        text = event.guest_question or event.guest_name
+        event.event_type = classify_intent(text)
+        print(f"Auto-detected intent: {event.event_type}")
 
     result = route_event(event)
 
     return {
-    "status": "success",
-    "result": result
+        "status": "success",
+        "detected_intent": event.event_type,
+        "result": result
     }
