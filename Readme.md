@@ -121,7 +121,7 @@ guestflow-ai/
 │   └── ticket_tool.py
 │
 ├── rag/
-│   ├── hotel_faq.txt
+│   ├── hotel_FAQ.txt
 │   └── rag_service.py
 │
 ├── database/

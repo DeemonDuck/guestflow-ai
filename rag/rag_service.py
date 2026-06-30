@@ -1,20 +1,34 @@
+import os
+
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
-_client = chromadb.Client()
-_embed_fn = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
-_collection = _client.get_or_create_collection("hotel_faq", embedding_function=_embed_fn)
+# Paths resolved relative to this file so they work regardless of the current
+# working directory (and match the real filename casing on case-sensitive OSes).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_FAQ_PATH = os.path.join(_HERE, "hotel_FAQ.txt")
+_STORAGE_PATH = os.path.join(_HERE, "chroma_storage")
 
-# Load FAQ into ChromaDB on first use
+# Persist embeddings to disk so the FAQ is not re-embedded on every startup
+_client = chromadb.PersistentClient(path=_STORAGE_PATH)
+_embed_fn = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+_collection = _client.get_or_create_collection(
+    "hotel_faq",
+    embedding_function=_embed_fn
+)
+
+
 def _load_faq():
+    # Already populated (persisted from a previous run) -> nothing to do
     if _collection.count() > 0:
         return
-    with open("rag/hotel_faq.txt", "r") as f:
+    with open(_FAQ_PATH, "r", encoding="utf-8") as f:
         lines = [l.strip() for l in f.readlines() if l.strip()]
     _collection.add(
         documents=lines,
         ids=[str(i) for i in range(len(lines))]
     )
+
 
 def retrieve_faq(query: str) -> str:
     _load_faq()

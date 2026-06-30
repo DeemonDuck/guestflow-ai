@@ -8,3 +8,4 @@ chromadb/
 # Runtime data (should not be version-controlled)
 *.db
 qdrant_storage/
+rag/chroma_storage/
