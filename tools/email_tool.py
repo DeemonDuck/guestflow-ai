@@ -1,10 +1,58 @@
-def send_email_tool(guest_name, message):
+import smtplib
+import os
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
-    print("\n EMAIL TOOL ACTIVATED")
-    print(f"Sending email to: {guest_name}")
-    print(f"Message: {message}")
+load_dotenv()
 
-    return {
-        "status": "email_sent",
-        "guest": guest_name
-    }
+SENDER = os.getenv("GMAIL_SENDER")
+APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
+RECIPIENT = os.getenv("GMAIL_RECIPIENT")
+
+
+def send_email_tool(
+    guest_name: str,
+    message: str,
+    room_number: str = "N/A",
+    category: str = "General",
+    priority: str = "Normal",
+    time: str = "N/A"
+) -> dict:
+
+    subject = f"[{priority}] {category} Request — Room {room_number} ({guest_name})"
+
+    body = f"""
+Guest Request Details
+---------------------
+Guest     : {guest_name}
+Room      : {room_number}
+Category  : {category}
+Priority  : {priority}
+Time      : {time}
+
+Message:
+{message}
+""".strip()
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = SENDER
+    msg["To"] = RECIPIENT
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(SENDER, APP_PASSWORD)
+            server.sendmail(SENDER, RECIPIENT, msg.as_string())
+
+        print(f"\n EMAIL SENT — Room {room_number} | {category} | {priority}")
+        return {
+            "status": "email_sent",
+            "guest": guest_name,
+            "room": room_number,
+            "category": category,
+            "priority": priority
+        }
+
+    except Exception as e:
+        print(f"\n EMAIL FAILED: {e}")
+        return {"status": "email_failed", "error": str(e)}

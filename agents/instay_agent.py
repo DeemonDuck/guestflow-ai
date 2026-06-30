@@ -71,8 +71,12 @@ def handle_instay(event):
 
     # Create support ticket
     ticket_result = create_ticket_tool(
-        guest_name,
-        guest_question
+        guest_name=guest_name,
+        issue=guest_question,
+        room_number=getattr(event, "room_number", "N/A"),
+        category=getattr(event, "category", "General"),
+        priority="High" if escalation_required else getattr(event, "priority", "Normal"),
+        time=getattr(event, "time", "N/A")
     )
 
     # Return workflow result

@@ -10,6 +10,10 @@ app = FastAPI()
 class WebhookEvent(BaseModel):
     event_type: Optional[str] = None
     guest_name: str
+    room_number: Optional[str] = "N/A"
+    category: Optional[str] = "General"
+    priority: Optional[str] = "Normal"
+    time: Optional[str] = "N/A"
     guest_question: Optional[str] = None
 
 

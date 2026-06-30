@@ -3,50 +3,41 @@ from qdrant_client.models import Distance, VectorParams, PointStruct
 from sentence_transformers import SentenceTransformer
 import uuid
 
-client = QdrantClient("localhost", port=6333)
+# Runs in-process, persists to disk — no separate Qdrant server needed
+client = QdrantClient(path="./qdrant_storage")
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Collections
+COLLECTION = "guest_memory"
 
-client.recreate_collection(
-    collection_name="guest_memory",
-    vectors_config=VectorParams(
-        size=384,
-        distance=Distance.COSINE
+# Create collection only if it doesn't exist
+existing = [c.name for c in client.get_collections().collections]
+if COLLECTION not in existing:
+    client.create_collection(
+        collection_name=COLLECTION,
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
     )
-)
 
-# Memory STorage Function
-def store_memory(user_id, text):
+
+def store_memory(user_id: str, text: str):
     embedding = model.encode(text).tolist()
-
     client.upsert(
-        collection_name="guest_memory",
+        collection_name=COLLECTION,
         points=[
             PointStruct(
                 id=str(uuid.uuid4()),
                 vector=embedding,
-                payload={
-                    "user_id": user_id,
-                    "memory": text
-                }
+                payload={"user_id": user_id, "memory": text}
             )
         ]
     )
-
     print("Memory stored successfully!")
 
-# Retrieval Function
 
-def retrieve_memory(query):
+def retrieve_memory(query: str):
     embedding = model.encode(query).tolist()
-
-    results = client.query_points(
-        collection_name="guest_memory",
+    return client.query_points(
+        collection_name=COLLECTION,
         query=embedding,
         limit=3
     )
-
-    return results
-

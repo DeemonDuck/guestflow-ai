@@ -54,8 +54,10 @@ def handle_prestay(event):
     )   
 
     email_result = send_email_tool(
-        guest_name,
-        ai_response
+        guest_name=guest_name,
+        message=ai_response,
+        category="Booking Confirmation",
+        priority="Normal"
     )
 
     crm_result = update_crm_tool(

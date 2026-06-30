@@ -8,8 +8,10 @@ def handle_poststay(event):
     guest_name = event.guest_name
 
     email_result = send_email_tool(
-        guest_name,
-        "Thank you for staying with us! Please share feedback."
+        guest_name=guest_name,
+        message="Thank you for staying with us! Please share feedback.",
+        category="Post-Stay Feedback",
+        priority="Normal"
     )
 
     return {
