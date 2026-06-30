@@ -17,4 +17,19 @@ CREATE TABLE IF NOT EXISTS guest_events (
 )
 """)
 
+# Create tickets table (guest issues that need to be tracked to resolution)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_name TEXT NOT NULL,
+    room_number TEXT,
+    category TEXT,
+    priority TEXT,
+    issue TEXT,
+    status TEXT DEFAULT 'open',
+    created_at TEXT,
+    updated_at TEXT
+)
+""")
+
 conn.commit()
