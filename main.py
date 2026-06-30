@@ -8,6 +8,7 @@ from tools.ticket_tool import (
     find_stale_tickets,
     escalate_stale_tickets,
 )
+from tools.profile_tool import get_profile, save_profile
 from typing import Optional
 
 app = FastAPI()
@@ -25,6 +26,13 @@ class WebhookEvent(BaseModel):
 
 class TicketStatusUpdate(BaseModel):
     status: str
+
+
+class ProfileUpdate(BaseModel):
+    contact_email: Optional[str] = None
+    preferences: Optional[str] = None
+    is_vip: Optional[bool] = None
+    notes: Optional[str] = None
 
 
 @app.post("/webhook")
@@ -67,3 +75,22 @@ async def get_escalations(minutes: int = 30):
 async def run_escalations(minutes: int = 30):
     """Alert a manager about stale open tickets (each ticket escalated once)."""
     return {"minutes": minutes, "escalated": escalate_stale_tickets(minutes)}
+
+
+@app.get("/profiles/{guest_name}")
+async def read_profile(guest_name: str):
+    """Return a guest's stored profile (or null if none exists)."""
+    return {"profile": get_profile(guest_name)}
+
+
+@app.post("/profiles/{guest_name}")
+async def write_profile(guest_name: str, update: ProfileUpdate):
+    """Create or update a guest profile (merge upsert: omitted fields are kept)."""
+    profile = save_profile(
+        guest_name,
+        contact_email=update.contact_email,
+        preferences=update.preferences,
+        is_vip=update.is_vip,
+        notes=update.notes,
+    )
+    return {"profile": profile}

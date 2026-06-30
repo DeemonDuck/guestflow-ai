@@ -315,6 +315,26 @@ others, so partial updates are safe. When a guest has a profile, their stored
 preferences are injected into the AI prompt for both booking confirmations
 (pre-stay) and in-stay requests, so replies are personalised automatically.
 
+## Profile API
+
+```text
+GET  /profiles/{guest_name}     # read a profile (null if none exists)
+POST /profiles/{guest_name}     # create or update (merge upsert)
+```
+
+```json
+{
+  "contact_email": "sharma@example.com",
+  "preferences": "High floor, extra pillows",
+  "is_vip": true,
+  "notes": "Anniversary on 12 Aug"
+}
+```
+
+Staff can also manage profiles visually from the **👤 Profiles** tab in the
+Streamlit dashboard: look up a guest by name, and the form pre-fills with any
+existing profile so preferences, VIP status and notes can be edited and saved.
+
 ---
 
 # 🎯 Key Concepts Demonstrated

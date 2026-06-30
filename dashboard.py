@@ -117,7 +117,7 @@ guest_question = st.sidebar.text_area(
 # -----------------------------
 # TABS: Workflow + Tickets
 # -----------------------------
-tab_workflow, tab_tickets = st.tabs(["⚙️ Workflow", "🎫 Tickets"])
+tab_workflow, tab_tickets, tab_profiles = st.tabs(["⚙️ Workflow", "🎫 Tickets", "👤 Profiles"])
 
 
 # =============================
@@ -288,3 +288,73 @@ with tab_tickets:
 
     except Exception as e:
         st.error(f"Could not load tickets: {e}")
+
+
+# =============================
+# PROFILES TAB
+# =============================
+with tab_profiles:
+
+    st.subheader("Guest Profiles & Preferences")
+
+    lookup_name = st.text_input("Guest name", key="profile_lookup")
+
+    if lookup_name:
+        # Load existing profile (if any) to pre-fill the form
+        existing = {}
+        try:
+            resp = requests.get(f"{API_BASE}/profiles/{lookup_name}")
+            existing = resp.json().get("profile") or {}
+        except Exception as e:
+            st.error(f"Could not load profile: {e}")
+
+        if existing:
+            st.caption(
+                f"Existing profile · created {existing.get('created_at', '?')} · "
+                f"updated {existing.get('updated_at', '?')}"
+            )
+        else:
+            st.caption("No profile yet — saving will create one.")
+
+        contact_email = st.text_input(
+            "Contact email",
+            value=existing.get("contact_email") or "",
+            key="profile_email"
+        )
+        preferences = st.text_area(
+            "Preferences",
+            value=existing.get("preferences") or "",
+            key="profile_prefs",
+            placeholder="High floor, extra pillows, vegetarian breakfast"
+        )
+        is_vip = st.checkbox(
+            "VIP guest",
+            value=bool(existing.get("is_vip", False)),
+            key="profile_vip"
+        )
+        notes = st.text_area(
+            "Notes",
+            value=existing.get("notes") or "",
+            key="profile_notes"
+        )
+
+        if st.button("Save Profile", key="profile_save"):
+            payload = {
+                "contact_email": contact_email or None,
+                "preferences": preferences or None,
+                "is_vip": is_vip,
+                "notes": notes or None,
+            }
+            try:
+                save = requests.post(
+                    f"{API_BASE}/profiles/{lookup_name}",
+                    json=payload
+                )
+                saved = save.json().get("profile")
+                if saved:
+                    st.success(f"Profile saved for {lookup_name}")
+                    st.json(saved)
+                else:
+                    st.error("Save failed")
+            except Exception as e:
+                st.error(f"Could not save profile: {e}")
