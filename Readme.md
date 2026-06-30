@@ -277,6 +277,20 @@ guest to confirm the issue is actually fixed — closing the loop from request t
 resolution. (The follow-up fires only on the transition into `resolved`, so
 re-saving a resolved ticket never spams the guest.)
 
+## Escalation Timer
+
+Open tickets that sit unattended too long can be surfaced and escalated to a
+manager:
+
+```text
+GET  /tickets/escalations?minutes=30        # list stale open tickets (read-only)
+POST /tickets/escalations/run?minutes=30     # alert manager about stale tickets
+```
+
+Each ticket is escalated at most once (tracked via an `escalated` flag), so
+running the escalation repeatedly never re-notifies the same ticket. Point a
+scheduler/cron at the `run` endpoint to make escalation automatic.
+
 Staff can also view and update tickets visually from the **🎫 Tickets** tab in
 the Streamlit dashboard (filter by status, then change a ticket's state inline).
 

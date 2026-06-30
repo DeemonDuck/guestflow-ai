@@ -28,8 +28,15 @@ CREATE TABLE IF NOT EXISTS tickets (
     issue TEXT,
     status TEXT DEFAULT 'open',
     created_at TEXT,
-    updated_at TEXT
+    updated_at TEXT,
+    escalated INTEGER DEFAULT 0
 )
 """)
+
+# Migration: add 'escalated' column to tickets tables created before this field
+cursor.execute("PRAGMA table_info(tickets)")
+_ticket_columns = [c[1] for c in cursor.fetchall()]
+if "escalated" not in _ticket_columns:
+    cursor.execute("ALTER TABLE tickets ADD COLUMN escalated INTEGER DEFAULT 0")
 
 conn.commit()

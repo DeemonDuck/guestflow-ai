@@ -2,7 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from agents.orchestrator import route_event
 from intent_classifier import classify_intent
-from tools.ticket_tool import list_tickets, update_ticket_status
+from tools.ticket_tool import (
+    list_tickets,
+    update_ticket_status,
+    find_stale_tickets,
+    escalate_stale_tickets,
+)
 from typing import Optional
 
 app = FastAPI()
@@ -50,3 +55,15 @@ async def get_tickets(status: Optional[str] = None):
 async def patch_ticket(ticket_id: int, update: TicketStatusUpdate):
     """Move a ticket to a new lifecycle state."""
     return update_ticket_status(ticket_id, update.status)
+
+
+@app.get("/tickets/escalations")
+async def get_escalations(minutes: int = 30):
+    """List open tickets unattended for longer than `minutes` (read-only)."""
+    return {"minutes": minutes, "stale_tickets": find_stale_tickets(minutes)}
+
+
+@app.post("/tickets/escalations/run")
+async def run_escalations(minutes: int = 30):
+    """Alert a manager about stale open tickets (each ticket escalated once)."""
+    return {"minutes": minutes, "escalated": escalate_stale_tickets(minutes)}

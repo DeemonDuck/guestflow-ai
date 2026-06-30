@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database.db import conn, cursor
 from tools.email_tool import send_email_tool
@@ -139,3 +139,69 @@ def update_ticket_status(ticket_id: int, new_status: str) -> dict:
         result["guest_follow_up"] = follow_up
 
     return result
+
+
+def find_stale_tickets(minutes: int = 30) -> list:
+    """Return open tickets created more than `minutes` ago (still unattended)."""
+    cutoff = datetime.now() - timedelta(minutes=minutes)
+
+    cursor.execute("SELECT * FROM tickets WHERE status = 'open' ORDER BY id DESC")
+    stale = []
+    for row in cursor.fetchall():
+        ticket = _row_to_ticket(row)
+        try:
+            created = datetime.fromisoformat(ticket["created_at"])
+        except (TypeError, ValueError):
+            continue
+        if created < cutoff:
+            stale.append(ticket)
+
+    return stale
+
+
+def escalate_stale_tickets(minutes: int = 30) -> list:
+    """Alert a manager about open tickets older than `minutes`.
+
+    Each ticket is escalated at most once (tracked via the `escalated` flag),
+    so repeated runs never re-notify the same ticket.
+    """
+    cutoff = datetime.now() - timedelta(minutes=minutes)
+
+    cursor.execute(
+        "SELECT * FROM tickets WHERE status = 'open' AND escalated = 0 ORDER BY id DESC"
+    )
+    escalated = []
+    for row in cursor.fetchall():
+        ticket = _row_to_ticket(row)
+        try:
+            created = datetime.fromisoformat(ticket["created_at"])
+        except (TypeError, ValueError):
+            continue
+        if created >= cutoff:
+            continue
+
+        tid = ticket["ticket_id"]
+
+        # Mark escalated first so a notification failure can't cause re-escalation
+        cursor.execute("UPDATE tickets SET escalated = 1 WHERE id = ?", (tid,))
+        conn.commit()
+
+        print(f"\n ESCALATING TICKET #{tid} (open for > {minutes} min)")
+
+        alert = send_email_tool(
+            guest_name=ticket["guest_name"],
+            message=(
+                f"ESCALATION: ticket #{tid} from guest {ticket['guest_name']} "
+                f"(room {ticket['room_number']}) has been open for more than "
+                f"{minutes} minutes and is still unattended.\n\n"
+                f"Issue: {ticket['issue']}"
+            ),
+            room_number=ticket["room_number"] or "N/A",
+            category=ticket["category"] or "General",
+            priority="High"
+        )
+
+        ticket["escalation_alert"] = alert
+        escalated.append(ticket)
+
+    return escalated
