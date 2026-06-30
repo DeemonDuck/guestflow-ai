@@ -39,4 +39,17 @@ _ticket_columns = [c[1] for c in cursor.fetchall()]
 if "escalated" not in _ticket_columns:
     cursor.execute("ALTER TABLE tickets ADD COLUMN escalated INTEGER DEFAULT 0")
 
+# Create guest_profiles table (durable per-guest preferences & contact info)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS guest_profiles (
+    guest_name TEXT PRIMARY KEY,
+    contact_email TEXT,
+    preferences TEXT,
+    is_vip INTEGER DEFAULT 0,
+    notes TEXT,
+    created_at TEXT,
+    updated_at TEXT
+)
+""")
+
 conn.commit()

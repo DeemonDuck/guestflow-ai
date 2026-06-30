@@ -296,6 +296,26 @@ the Streamlit dashboard (filter by status, then change a ticket's state inline).
 
 ---
 
+# 👤 Guest Profiles & Preferences
+
+GuestFlow keeps a durable **profile** per guest so repeat visitors are recognised
+and personalised — instead of asking the same questions every stay.
+
+A profile stores:
+
+| Field           | Example                              |
+| --------------- | ------------------------------------ |
+| `contact_email` | `sharma@example.com`                 |
+| `preferences`   | `High floor, extra pillows, veg meal`|
+| `is_vip`        | `true`                               |
+| `notes`         | `Anniversary on 12 Aug`              |
+
+Profiles are saved via a **merge upsert**: updating one field never erases the
+others, so partial updates are safe. These preferences are used to personalise
+guest responses across the pre-stay / in-stay workflow.
+
+---
+
 # 🎯 Key Concepts Demonstrated
 
 * AI Workflow Automation
