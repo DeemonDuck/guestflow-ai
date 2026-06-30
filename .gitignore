@@ -4,6 +4,7 @@ __pycache__/
 venv/
 chromadb/
 *.docx
+.pytest_cache/
 
 # Runtime data (should not be version-controlled)
 *.db

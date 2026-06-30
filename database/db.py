@@ -1,8 +1,13 @@
+import os
 import sqlite3
 
 
+# DB path is configurable so tests can run against an isolated temporary
+# database (set GUESTFLOW_DB before import). Defaults to the app database.
+DB_PATH = os.getenv("GUESTFLOW_DB", "guestflow.db")
+
 # Connect to SQLite database
-conn = sqlite3.connect("guestflow.db", check_same_thread=False)
+conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 
 # Cursor helps execute SQL commands
 cursor = conn.cursor()

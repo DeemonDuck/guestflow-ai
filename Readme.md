@@ -435,6 +435,23 @@ sends it automatically.
 
 ---
 
+# 🧪 Tests
+
+A `pytest` suite covers the core behaviour: ticket lifecycle (creation,
+status validation, resolve follow-up firing once, escalation alerting once),
+guest profile merge-upsert, review/feedback sentiment + compliance (review link
+offered to every guest, manager alerted only on negative feedback), analytics
+aggregation, and API key authentication.
+
+```bash
+pytest tests/ -q
+```
+
+Tests run against an isolated temporary database (no impact on `guestflow.db`)
+and stub all outbound email, so the suite sends nothing and touches no real data.
+
+---
+
 # 🎯 Key Concepts Demonstrated
 
 * AI Workflow Automation
