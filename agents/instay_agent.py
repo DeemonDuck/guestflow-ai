@@ -1,5 +1,6 @@
 from tools.ticket_tool import create_ticket_tool
 from tools.crm_tool import get_guest_history_tool
+from tools.profile_tool import get_profile
 from llm_service import generate_guest_response
 from rag.rag_service import retrieve_faq
 
@@ -50,6 +51,10 @@ def handle_instay(event):
 
     print(f"\nFAQ MATCH: {faq_result}")
 
+    # Load stored guest preferences (if any) to personalise the reply
+    profile = get_profile(guest_name)
+    preferences = profile["preferences"] if profile and profile.get("preferences") else "None on file"
+
     # AI-generated response
     ai_response = generate_guest_response(
         f"""
@@ -67,6 +72,9 @@ def handle_instay(event):
 
         Relevant Hotel Information:
         {faq_result}
+
+        Known Guest Preferences:
+        {preferences}
         """
     )
 
@@ -91,5 +99,6 @@ def handle_instay(event):
         "ticket": ticket_result,
         "is_vip": is_vip,
         "escalation_required": escalation_required,
-        "history": history
+        "history": history,
+        "preferences": preferences
     }

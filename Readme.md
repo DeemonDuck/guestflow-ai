@@ -311,8 +311,9 @@ A profile stores:
 | `notes`         | `Anniversary on 12 Aug`              |
 
 Profiles are saved via a **merge upsert**: updating one field never erases the
-others, so partial updates are safe. These preferences are used to personalise
-guest responses across the pre-stay / in-stay workflow.
+others, so partial updates are safe. When a guest has a profile, their stored
+preferences are injected into the AI prompt for both booking confirmations
+(pre-stay) and in-stay requests, so replies are personalised automatically.
 
 ---
 

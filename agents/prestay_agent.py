@@ -5,6 +5,7 @@ from tools.crm_tool import (
 )
 
 from memory import store_memory, retrieve_memory
+from tools.profile_tool import get_profile
 from llm_service import generate_guest_response
 
 def handle_prestay(event):
@@ -26,6 +27,10 @@ def handle_prestay(event):
 
     memory_context = str(memory_results)
 
+    # Load stored guest preferences (if any) to personalise the confirmation
+    profile = get_profile(guest_name)
+    preferences = profile["preferences"] if profile and profile.get("preferences") else "None on file"
+
     ai_response = generate_guest_response(
         f"""
         You are a luxury hotel booking assistant.
@@ -42,6 +47,9 @@ def handle_prestay(event):
 
         Guest Event:
         {event.event_type}
+
+        Known Guest Preferences:
+        {preferences}
 
         Previous Guest Memory:
         {memory_context}
@@ -77,4 +85,5 @@ def handle_prestay(event):
         "crm": crm_result,
         "memory": str(memory_results),
         "ai_response": ai_response,
+        "preferences": preferences,
     }
