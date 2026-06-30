@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from database.db import conn, cursor
+from tools.email_tool import send_email_tool
 
 
 def create_ticket_tool(
@@ -80,19 +81,29 @@ def list_tickets(status: str = None) -> list:
 
 
 def update_ticket_status(ticket_id: int, new_status: str) -> dict:
-    """Move a ticket to a new lifecycle state."""
+    """Move a ticket to a new lifecycle state.
+
+    When a ticket transitions to 'resolved', automatically follow up with the
+    guest to confirm the issue is actually fixed (closing the loop).
+    """
     if new_status not in ALLOWED_STATUSES:
         return {
             "status": "error",
             "message": f"Invalid status '{new_status}'. Allowed: {ALLOWED_STATUSES}"
         }
 
-    cursor.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,))
-    if cursor.fetchone() is None:
+    cursor.execute(
+        "SELECT status, guest_name, room_number, category, issue FROM tickets WHERE id = ?",
+        (ticket_id,)
+    )
+    row = cursor.fetchone()
+    if row is None:
         return {
             "status": "error",
             "message": f"Ticket #{ticket_id} not found"
         }
+
+    previous_status, guest_name, room_number, category, issue = row
 
     now = datetime.now().isoformat(timespec="seconds")
     cursor.execute(
@@ -103,9 +114,28 @@ def update_ticket_status(ticket_id: int, new_status: str) -> dict:
 
     print(f"\n TICKET #{ticket_id} -> {new_status}")
 
-    return {
+    result = {
         "status": "ticket_updated",
         "ticket_id": ticket_id,
         "ticket_status": new_status,
         "updated_at": now
     }
+
+    # Close the loop: confirm with the guest when the issue is marked resolved.
+    # Only on the open/in_progress -> resolved transition, so re-saving a
+    # resolved ticket doesn't spam the guest.
+    if new_status == "resolved" and previous_status != "resolved":
+        follow_up = send_email_tool(
+            guest_name=guest_name,
+            message=(
+                f"Hi {guest_name}, our team has marked your request "
+                f"(\"{issue}\") as resolved. Has everything been taken care of "
+                f"to your satisfaction? Just reply if you need anything else."
+            ),
+            room_number=room_number or "N/A",
+            category=category or "General",
+            priority="Normal"
+        )
+        result["guest_follow_up"] = follow_up
+
+    return result

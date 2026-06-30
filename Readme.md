@@ -272,6 +272,11 @@ PATCH /tickets/{ticket_id}
 
 Allowed statuses: `open`, `in_progress`, `resolved`.
 
+When a ticket is moved to `resolved`, GuestFlow automatically follows up with the
+guest to confirm the issue is actually fixed — closing the loop from request to
+resolution. (The follow-up fires only on the transition into `resolved`, so
+re-saving a resolved ticket never spams the guest.)
+
 Staff can also view and update tickets visually from the **🎫 Tickets** tab in
 the Streamlit dashboard (filter by status, then change a ticket's state inline).
 
