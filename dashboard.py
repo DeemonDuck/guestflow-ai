@@ -125,8 +125,8 @@ guest_question = st.sidebar.text_area(
 # -----------------------------
 # TABS: Workflow + Tickets
 # -----------------------------
-tab_workflow, tab_tickets, tab_profiles, tab_feedback = st.tabs(
-    ["⚙️ Workflow", "🎫 Tickets", "👤 Profiles", "⭐ Feedback"]
+tab_workflow, tab_tickets, tab_profiles, tab_feedback, tab_analytics = st.tabs(
+    ["⚙️ Workflow", "🎫 Tickets", "👤 Profiles", "⭐ Feedback", "📊 Analytics"]
 )
 
 
@@ -448,3 +448,55 @@ with tab_feedback:
                         st.warning("Manager was alerted for service recovery.")
     except Exception as e:
         st.error(f"Could not load feedback: {e}")
+
+
+# =============================
+# ANALYTICS TAB
+# =============================
+with tab_analytics:
+
+    st.subheader("Owner Analytics")
+    st.caption("The ROI picture: workload handled, resolution speed, and guest sentiment.")
+
+    try:
+        resp = requests.get(f"{API_BASE}/analytics", headers=HEADERS)
+        data = resp.json()
+        t = data.get("tickets", {})
+        f = data.get("feedback", {})
+
+        st.markdown("### Tickets")
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.metric("Total", t.get("total", 0))
+        with c2:
+            st.metric("Resolved", t.get("resolved", 0))
+        with c3:
+            rate = t.get("resolution_rate_pct")
+            st.metric("Resolution rate", f"{rate}%" if rate is not None else "—")
+        with c4:
+            st.metric("Escalated", t.get("escalated", 0))
+
+        c5, c6, c7 = st.columns(3)
+        with c5:
+            st.metric("Open", t.get("open", 0))
+        with c6:
+            st.metric("In progress", t.get("in_progress", 0))
+        with c7:
+            mins = t.get("avg_resolution_minutes")
+            st.metric("Avg resolution", f"{mins} min" if mins is not None else "—")
+
+        st.divider()
+        st.markdown("### Feedback")
+        c8, c9, c10, c11 = st.columns(4)
+        with c8:
+            st.metric("Responses", f.get("total", 0))
+        with c9:
+            avg = f.get("avg_rating")
+            st.metric("Avg rating", f"{avg} ★" if avg is not None else "—")
+        with c10:
+            st.metric("Positive", f.get("positive", 0))
+        with c11:
+            st.metric("Negative", f.get("negative", 0))
+
+    except Exception as e:
+        st.error(f"Could not load analytics: {e}")

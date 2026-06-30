@@ -10,6 +10,7 @@ from tools.ticket_tool import (
 )
 from tools.profile_tool import get_profile, save_profile
 from tools.feedback_tool import submit_feedback, list_feedback
+from tools.analytics_tool import get_analytics
 from config import ESCALATION_MINUTES, API_KEY
 from typing import Optional
 
@@ -130,3 +131,9 @@ async def get_feedback():
 async def post_feedback(guest_name: str, feedback: FeedbackSubmit):
     """Record a guest's post-stay feedback (alerts manager if negative)."""
     return submit_feedback(guest_name, rating=feedback.rating, comment=feedback.comment)
+
+
+@app.get("/analytics")
+async def analytics():
+    """Owner-facing ROI metrics aggregated from tickets and feedback."""
+    return get_analytics()

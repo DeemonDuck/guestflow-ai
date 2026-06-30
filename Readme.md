@@ -386,6 +386,24 @@ flags entries where the manager was alerted.
 
 ---
 
+# 📊 Owner Analytics
+
+A single ROI view for the hotel owner, aggregated from the data GuestFlow
+already collects:
+
+```text
+GET /analytics
+```
+
+Returns ticket metrics (total, open / in-progress / resolved, resolution rate,
+average resolution time in minutes, escalations) and feedback metrics (total
+responses, average rating, positive / negative counts).
+
+The **📊 Analytics** tab in the Streamlit dashboard renders these as at-a-glance
+metric cards — the "here's what you're paying for" screen.
+
+---
+
 # ⚙️ Configuration
 
 GuestFlow reads its settings from environment variables (e.g. a `.env` file):
