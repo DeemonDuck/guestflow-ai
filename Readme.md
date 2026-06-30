@@ -415,6 +415,7 @@ GuestFlow reads its settings from environment variables (e.g. a `.env` file):
 | `MANAGER_EMAIL`                     | Where escalation alerts go (falls back to `GMAIL_RECIPIENT`) |
 | `HOTEL_NAME`                        | Hotel name used in guest messaging                   |
 | `ESCALATION_MINUTES`                | Default staleness threshold for escalations (default `30`) |
+| `LLM_MODEL` / `LLM_TEMPERATURE`     | Ollama model + temperature (default `phi3` / `0.5`)  |
 | `API_KEY`                           | If set, all API requests must send it as the `X-API-Key` header |
 | `REVIEW_LINK`                       | Public review URL included in every guest feedback request |
 | `REVIEW_ALERT_THRESHOLD`            | Ratings at/below this (1-5) alert the manager (default `3`) |
