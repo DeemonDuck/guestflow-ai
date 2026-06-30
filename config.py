@@ -24,6 +24,10 @@ ESCALATION_MINUTES = int(os.getenv("ESCALATION_MINUTES", "30"))
 # locally, but a deployment exposed to a network MUST set this.
 API_KEY = os.getenv("API_KEY")
 
+# When true, the app refuses to start without an API_KEY (fail-closed for
+# production). Defaults to false so local development still works unconfigured.
+REQUIRE_AUTH = os.getenv("REQUIRE_AUTH", "false").lower() in ("1", "true", "yes")
+
 # Public review link (e.g. Google review URL). This is offered to EVERY guest
 # regardless of how they rate their stay — never conditioned on a positive
 # rating (conditioning it would be "review gating" and is not allowed).

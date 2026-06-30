@@ -1,5 +1,19 @@
+import hmac
+
 from fastapi import FastAPI, Depends, Header, HTTPException
 from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
+
+from config import ESCALATION_MINUTES, API_KEY, REQUIRE_AUTH
+
+# Fail-closed: in production (REQUIRE_AUTH) refuse to start without a key, so a
+# missing env var can never silently expose the API. Checked BEFORE loading the
+# heavy agent/LLM modules so it fails fast.
+if REQUIRE_AUTH and not API_KEY:
+    raise RuntimeError(
+        "REQUIRE_AUTH is set but API_KEY is missing. Set API_KEY before starting."
+    )
+
 from agents.orchestrator import route_event
 from intent_classifier import classify_intent
 from tools.ticket_tool import (
@@ -13,8 +27,6 @@ from tools.feedback_tool import submit_feedback, list_feedback
 from tools.analytics_tool import get_analytics
 from tools.insights_tool import get_insights
 from tools.digest_tool import send_digest, compose_digest
-from config import ESCALATION_MINUTES, API_KEY
-from typing import Optional
 
 
 def require_api_key(x_api_key: Optional[str] = Header(default=None)):
@@ -22,8 +34,10 @@ def require_api_key(x_api_key: Optional[str] = Header(default=None)):
 
     If API_KEY is unset, authentication is disabled (development mode).
     """
-    if API_KEY and x_api_key != API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    if API_KEY:
+        # Constant-time comparison to avoid timing-based key recovery
+        if not x_api_key or not hmac.compare_digest(x_api_key, API_KEY):
+            raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
 if not API_KEY:
@@ -32,8 +46,15 @@ if not API_KEY:
         "Set API_KEY in the environment before exposing this service on a network."
     )
 
-# Apply the key check to every endpoint (no-op when API_KEY is unset)
-app = FastAPI(dependencies=[Depends(require_api_key)])
+# Disable interactive docs / schema when a key is configured (production), so the
+# full API surface isn't publicly discoverable. They stay on for local dev.
+_docs_enabled = API_KEY is None
+app = FastAPI(
+    dependencies=[Depends(require_api_key)],
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
 
 
 class WebhookEvent(BaseModel):
