@@ -3,6 +3,9 @@ import requests
 import base64
 
 
+API_BASE = "http://127.0.0.1:8000"
+
+
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
@@ -112,106 +115,173 @@ guest_question = st.sidebar.text_area(
 
 
 # -----------------------------
-# WORKFLOW BUTTON
+# TABS: Workflow + Tickets
 # -----------------------------
-if st.sidebar.button("Trigger Workflow"):
+tab_workflow, tab_tickets = st.tabs(["⚙️ Workflow", "🎫 Tickets"])
 
-    payload = {
-        "event_type": event_type,
-        "guest_name": guest_name,
-        "guest_question": guest_question
-    }
+
+# =============================
+# WORKFLOW TAB
+# =============================
+with tab_workflow:
+
+    if st.sidebar.button("Trigger Workflow"):
+
+        payload = {
+            "event_type": event_type,
+            "guest_name": guest_name,
+            "guest_question": guest_question
+        }
+
+        try:
+
+            response = requests.post(
+                f"{API_BASE}/webhook",
+                json=payload
+            )
+
+            result = response.json()
+
+            st.success("Workflow Executed Successfully")
+
+            # Show detected intent
+            detected = result.get("detected_intent")
+            if detected:
+                st.info(f"🧠 Detected Intent: `{detected}`")
+
+            # Full API Response
+            st.subheader("Full API Response")
+            st.json(result)
+
+            # Extract Workflow Result
+            workflow_result = result.get("result")
+
+            if workflow_result:
+
+                st.divider()
+
+                st.subheader("Workflow Analysis")
+
+                # Metrics
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.metric(
+                        "VIP Guest",
+                        workflow_result.get(
+                            "is_vip",
+                            False
+                        )
+                    )
+
+                with col2:
+                    st.metric(
+                        "Escalation Required",
+                        workflow_result.get(
+                            "escalation_required",
+                            False
+                        )
+                    )
+
+                # Agent Used
+                st.subheader("Agent Used")
+
+                st.success(
+                    workflow_result.get(
+                        "agent",
+                        "Unknown Agent"
+                    )
+                )
+
+                # AI Response
+                st.subheader("AI Response")
+
+                st.write(
+                    workflow_result.get(
+                        "ai_response",
+                        "No AI response available"
+                    )
+                )
+
+                # FAQ Result
+                st.subheader("Retrieved FAQ")
+
+                st.info(
+                    workflow_result.get(
+                        "faq_result",
+                        "No FAQ retrieved"
+                    )
+                )
+
+                # Guest History
+                st.subheader("Guest History")
+
+                st.write(
+                    workflow_result.get(
+                        "history",
+                        []
+                    )
+                )
+
+        except Exception as e:
+
+            st.error(f"Error: {e}")
+
+
+# =============================
+# TICKETS TAB
+# =============================
+with tab_tickets:
+
+    st.subheader("Support Tickets")
+
+    status_filter = st.selectbox(
+        "Filter by status",
+        ["all", "open", "in_progress", "resolved"]
+    )
 
     try:
+        params = {} if status_filter == "all" else {"status": status_filter}
+        resp = requests.get(f"{API_BASE}/tickets", params=params)
+        tickets = resp.json().get("tickets", [])
 
-        response = requests.post(
-            "http://127.0.0.1:8000/webhook",
-            json=payload
-        )
+        if not tickets:
+            st.info("No tickets found for this filter.")
 
-        result = response.json()
+        else:
+            st.caption(f"{len(tickets)} ticket(s)")
 
-        st.success("Workflow Executed Successfully")
+            for t in tickets:
+                tid = t["ticket_id"]
+                with st.expander(
+                    f"#{tid} · {t['category']} · {t['priority']} · [{t['ticket_status']}]"
+                ):
+                    st.write(f"**Guest:** {t['guest_name']}")
+                    st.write(f"**Room:** {t['room_number']}")
+                    st.write(f"**Issue:** {t['issue']}")
+                    st.write(f"**Created:** {t['created_at']}")
+                    st.write(f"**Updated:** {t['updated_at']}")
 
-        # Show detected intent
-        detected = result.get("detected_intent")
-        if detected:
-            st.info(f"🧠 Detected Intent: `{detected}`")
-
-        # Full API Response
-        st.subheader("Full API Response")
-        st.json(result)
-
-        # Extract Workflow Result
-        workflow_result = result.get("result")
-
-        if workflow_result:
-
-            st.divider()
-
-            st.subheader("Workflow Analysis")
-
-            # Metrics
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.metric(
-                    "VIP Guest",
-                    workflow_result.get(
-                        "is_vip",
-                        False
+                    options = ["open", "in_progress", "resolved"]
+                    current = t["ticket_status"]
+                    new_status = st.selectbox(
+                        "Change status",
+                        options,
+                        index=options.index(current) if current in options else 0,
+                        key=f"status_{tid}"
                     )
-                )
 
-            with col2:
-                st.metric(
-                    "Escalation Required",
-                    workflow_result.get(
-                        "escalation_required",
-                        False
-                    )
-                )
-
-            # Agent Used
-            st.subheader("Agent Used")
-
-            st.success(
-                workflow_result.get(
-                    "agent",
-                    "Unknown Agent"
-                )
-            )
-
-            # AI Response
-            st.subheader("AI Response")
-
-            st.write(
-                workflow_result.get(
-                    "ai_response",
-                    "No AI response available"
-                )
-            )
-
-            # FAQ Result
-            st.subheader("Retrieved FAQ")
-
-            st.info(
-                workflow_result.get(
-                    "faq_result",
-                    "No FAQ retrieved"
-                )
-            )
-
-            # Guest History
-            st.subheader("Guest History")
-
-            st.write(
-                workflow_result.get(
-                    "history",
-                    []
-                )
-            )
+                    if st.button("Update", key=f"update_{tid}"):
+                        patch = requests.patch(
+                            f"{API_BASE}/tickets/{tid}",
+                            json={"status": new_status}
+                        )
+                        out = patch.json()
+                        if out.get("status") == "ticket_updated":
+                            st.success(f"Ticket #{tid} → {new_status}")
+                            st.rerun()
+                        else:
+                            st.error(out.get("message", "Update failed"))
 
     except Exception as e:
-
-        st.error(f"Error: {e}")
+        st.error(f"Could not load tickets: {e}")

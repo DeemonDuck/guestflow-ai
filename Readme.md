@@ -272,6 +272,9 @@ PATCH /tickets/{ticket_id}
 
 Allowed statuses: `open`, `in_progress`, `resolved`.
 
+Staff can also view and update tickets visually from the **🎫 Tickets** tab in
+the Streamlit dashboard (filter by status, then change a ticket's state inline).
+
 ---
 
 # 🎯 Key Concepts Demonstrated
