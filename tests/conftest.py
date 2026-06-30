@@ -47,6 +47,8 @@ def captured_emails(monkeypatch):
 
     import tools.ticket_tool
     import tools.feedback_tool
+    import tools.digest_tool
     monkeypatch.setattr(tools.ticket_tool, "send_email_tool", fake_send)
     monkeypatch.setattr(tools.feedback_tool, "send_email_tool", fake_send)
+    monkeypatch.setattr(tools.digest_tool, "send_email_tool", fake_send)
     return calls

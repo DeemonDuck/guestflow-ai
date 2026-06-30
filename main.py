@@ -12,6 +12,7 @@ from tools.profile_tool import get_profile, save_profile
 from tools.feedback_tool import submit_feedback, list_feedback
 from tools.analytics_tool import get_analytics
 from tools.insights_tool import get_insights
+from tools.digest_tool import send_digest, compose_digest
 from config import ESCALATION_MINUTES, API_KEY
 from typing import Optional
 
@@ -144,3 +145,15 @@ async def analytics():
 async def insights():
     """Proactive operations insights (systemic issues, repeat rooms, feedback themes)."""
     return {"insights": get_insights()}
+
+
+@app.get("/digest")
+async def digest_preview():
+    """Preview the manager digest body without sending it."""
+    return {"digest": compose_digest()}
+
+
+@app.post("/digest/run")
+async def digest_run():
+    """Compose and email the operations digest to the manager."""
+    return send_digest()

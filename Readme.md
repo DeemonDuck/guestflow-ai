@@ -406,6 +406,20 @@ These appear at the top of the **📊 Analytics** dashboard tab. The pitch: *mos
 hotel AI answers your guests — GuestFlow tells you what's about to become a
 problem.*
 
+## Manager Daily Digest
+
+GuestFlow can compose a short operations briefing (ticket counts, escalations,
+average rating, recent feedback, and the insights above) and email it to the
+manager:
+
+```text
+GET  /digest          # preview the digest body without sending
+POST /digest/run       # compose and email it to MANAGER_EMAIL
+```
+
+Point a scheduler/cron at `POST /digest/run` to deliver a "morning brief"
+automatically.
+
 ---
 
 # 📊 Owner Analytics
