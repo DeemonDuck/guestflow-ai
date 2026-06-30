@@ -436,6 +436,20 @@ sends it automatically.
 
 ---
 
+# 🌱 Demo Data
+
+To make the dashboard look alive for a demo, seed realistic sample data
+(profiles, tickets in every state, and feedback):
+
+```bash
+python seed_demo.py
+```
+
+It is non-destructive — profiles are merge-upserted and ticket/feedback seeding
+is skipped if demo data already exists, so it is safe to re-run.
+
+---
+
 # 🧪 Tests
 
 A `pytest` suite covers the core behaviour: ticket lifecycle (creation,
