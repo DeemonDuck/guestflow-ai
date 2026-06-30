@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from agents.orchestrator import route_event
 from intent_classifier import classify_intent
+from tools.ticket_tool import list_tickets, update_ticket_status
 from typing import Optional
 
 app = FastAPI()
@@ -15,6 +16,10 @@ class WebhookEvent(BaseModel):
     priority: Optional[str] = "Normal"
     time: Optional[str] = "N/A"
     guest_question: Optional[str] = None
+
+
+class TicketStatusUpdate(BaseModel):
+    status: str
 
 
 @app.post("/webhook")
@@ -33,3 +38,15 @@ async def receive_webhook(event: WebhookEvent):
         "detected_intent": event.event_type,
         "result": result
     }
+
+
+@app.get("/tickets")
+async def get_tickets(status: Optional[str] = None):
+    """List tickets, optionally filtered by status (open/in_progress/resolved)."""
+    return {"tickets": list_tickets(status)}
+
+
+@app.patch("/tickets/{ticket_id}")
+async def patch_ticket(ticket_id: int, update: TicketStatusUpdate):
+    """Move a ticket to a new lifecycle state."""
+    return update_ticket_status(ticket_id, update.status)

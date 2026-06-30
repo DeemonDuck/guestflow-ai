@@ -246,6 +246,34 @@ http://localhost:8501
 
 ---
 
+# 🎫 Ticket Management API
+
+Guest requests that need follow-up are stored as **tickets** so they can be
+tracked through their full lifecycle: `open → in_progress → resolved`.
+
+## List Tickets
+
+```text
+GET /tickets               # all tickets
+GET /tickets?status=open   # filter by status
+```
+
+## Update Ticket Status
+
+```text
+PATCH /tickets/{ticket_id}
+```
+
+```json
+{
+  "status": "in_progress"
+}
+```
+
+Allowed statuses: `open`, `in_progress`, `resolved`.
+
+---
+
 # 🎯 Key Concepts Demonstrated
 
 * AI Workflow Automation
