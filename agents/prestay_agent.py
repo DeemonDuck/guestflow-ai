@@ -65,7 +65,8 @@ def handle_prestay(event):
         guest_name=guest_name,
         message=ai_response,
         category="Booking Confirmation",
-        priority="Normal"
+        priority="Normal",
+        recipient=(profile.get("contact_email") if profile else None)
     )
 
     crm_result = update_crm_tool(

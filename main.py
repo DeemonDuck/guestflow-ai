@@ -9,6 +9,7 @@ from tools.ticket_tool import (
     escalate_stale_tickets,
 )
 from tools.profile_tool import get_profile, save_profile
+from config import ESCALATION_MINUTES
 from typing import Optional
 
 app = FastAPI()
@@ -66,13 +67,13 @@ async def patch_ticket(ticket_id: int, update: TicketStatusUpdate):
 
 
 @app.get("/tickets/escalations")
-async def get_escalations(minutes: int = 30):
+async def get_escalations(minutes: int = ESCALATION_MINUTES):
     """List open tickets unattended for longer than `minutes` (read-only)."""
     return {"minutes": minutes, "stale_tickets": find_stale_tickets(minutes)}
 
 
 @app.post("/tickets/escalations/run")
-async def run_escalations(minutes: int = 30):
+async def run_escalations(minutes: int = ESCALATION_MINUTES):
     """Alert a manager about stale open tickets (each ticket escalated once)."""
     return {"minutes": minutes, "escalated": escalate_stale_tickets(minutes)}
 

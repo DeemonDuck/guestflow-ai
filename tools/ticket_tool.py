@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 
 from database.db import conn, cursor
 from tools.email_tool import send_email_tool
+from tools.profile_tool import get_profile
+from config import MANAGER_EMAIL
 
 
 def create_ticket_tool(
@@ -125,6 +127,10 @@ def update_ticket_status(ticket_id: int, new_status: str) -> dict:
     # Only on the open/in_progress -> resolved transition, so re-saving a
     # resolved ticket doesn't spam the guest.
     if new_status == "resolved" and previous_status != "resolved":
+        # Send to the guest's own email if we have it on file
+        profile = get_profile(guest_name)
+        guest_email = profile.get("contact_email") if profile else None
+
         follow_up = send_email_tool(
             guest_name=guest_name,
             message=(
@@ -134,7 +140,8 @@ def update_ticket_status(ticket_id: int, new_status: str) -> dict:
             ),
             room_number=room_number or "N/A",
             category=category or "General",
-            priority="Normal"
+            priority="Normal",
+            recipient=guest_email
         )
         result["guest_follow_up"] = follow_up
 
@@ -198,7 +205,8 @@ def escalate_stale_tickets(minutes: int = 30) -> list:
             ),
             room_number=ticket["room_number"] or "N/A",
             category=ticket["category"] or "General",
-            priority="High"
+            priority="High",
+            recipient=MANAGER_EMAIL
         )
 
         ticket["escalation_alert"] = alert

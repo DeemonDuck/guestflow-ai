@@ -16,8 +16,12 @@ def send_email_tool(
     room_number: str = "N/A",
     category: str = "General",
     priority: str = "Normal",
-    time: str = "N/A"
+    time: str = "N/A",
+    recipient: str = None
 ) -> dict:
+
+    # Fall back to the generic mailbox if no explicit recipient is given
+    to_address = recipient or RECIPIENT
 
     subject = f"[{priority}] {category} Request — Room {room_number} ({guest_name})"
 
@@ -37,17 +41,18 @@ Message:
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = SENDER
-    msg["To"] = RECIPIENT
+    msg["To"] = to_address
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(SENDER, APP_PASSWORD)
-            server.sendmail(SENDER, RECIPIENT, msg.as_string())
+            server.sendmail(SENDER, to_address, msg.as_string())
 
-        print(f"\n EMAIL SENT — Room {room_number} | {category} | {priority}")
+        print(f"\n EMAIL SENT — to {to_address} | Room {room_number} | {category} | {priority}")
         return {
             "status": "email_sent",
             "guest": guest_name,
+            "recipient": to_address,
             "room": room_number,
             "category": category,
             "priority": priority

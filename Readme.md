@@ -341,6 +341,25 @@ existing profile so preferences, VIP status and notes can be edited and saved.
 
 ---
 
+# ⚙️ Configuration
+
+GuestFlow reads its settings from environment variables (e.g. a `.env` file):
+
+| Variable                            | Purpose                                              |
+| ----------------------------------- | ---------------------------------------------------- |
+| `GMAIL_SENDER` / `GMAIL_APP_PASSWORD` | Mailbox used to send notifications                 |
+| `GMAIL_RECIPIENT`                   | Default mailbox (fallback when no specific recipient)|
+| `MANAGER_EMAIL`                     | Where escalation alerts go (falls back to `GMAIL_RECIPIENT`) |
+| `HOTEL_NAME`                        | Hotel name used in guest messaging                   |
+| `ESCALATION_MINUTES`                | Default staleness threshold for escalations (default `30`) |
+
+Notifications are routed automatically: **guest-facing messages** (booking
+confirmation and resolved-ticket follow-up) go to the guest's stored
+`contact_email`, while **escalation alerts** go to `MANAGER_EMAIL`. Each falls
+back to `GMAIL_RECIPIENT` when a specific address isn't on file.
+
+---
+
 # 🎯 Key Concepts Demonstrated
 
 * AI Workflow Automation
