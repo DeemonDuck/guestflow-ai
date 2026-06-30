@@ -1,9 +1,17 @@
 import streamlit as st
 import requests
 import base64
+import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_BASE = "http://127.0.0.1:8000"
+
+# Send the API key with every request when one is configured
+_API_KEY = os.getenv("API_KEY")
+HEADERS = {"X-API-Key": _API_KEY} if _API_KEY else {}
 
 
 # -----------------------------
@@ -137,7 +145,8 @@ with tab_workflow:
 
             response = requests.post(
                 f"{API_BASE}/webhook",
-                json=payload
+                json=payload,
+                headers=HEADERS
             )
 
             result = response.json()
@@ -245,7 +254,7 @@ with tab_tickets:
 
     try:
         params = {} if status_filter == "all" else {"status": status_filter}
-        resp = requests.get(f"{API_BASE}/tickets", params=params)
+        resp = requests.get(f"{API_BASE}/tickets", params=params, headers=HEADERS)
         tickets = resp.json().get("tickets", [])
 
         if not tickets:
@@ -277,7 +286,8 @@ with tab_tickets:
                     if st.button("Update", key=f"update_{tid}"):
                         patch = requests.patch(
                             f"{API_BASE}/tickets/{tid}",
-                            json={"status": new_status}
+                            json={"status": new_status},
+                            headers=HEADERS
                         )
                         out = patch.json()
                         if out.get("status") == "ticket_updated":
@@ -303,7 +313,7 @@ with tab_profiles:
         # Load existing profile (if any) to pre-fill the form
         existing = {}
         try:
-            resp = requests.get(f"{API_BASE}/profiles/{lookup_name}")
+            resp = requests.get(f"{API_BASE}/profiles/{lookup_name}", headers=HEADERS)
             existing = resp.json().get("profile") or {}
         except Exception as e:
             st.error(f"Could not load profile: {e}")
@@ -348,7 +358,8 @@ with tab_profiles:
             try:
                 save = requests.post(
                     f"{API_BASE}/profiles/{lookup_name}",
-                    json=payload
+                    json=payload,
+                    headers=HEADERS
                 )
                 saved = save.json().get("profile")
                 if saved:

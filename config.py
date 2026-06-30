@@ -18,3 +18,8 @@ MANAGER_EMAIL = os.getenv("MANAGER_EMAIL") or os.getenv("GMAIL_RECIPIENT")
 
 # Default age (minutes) after which an open ticket is considered stale
 ESCALATION_MINUTES = int(os.getenv("ESCALATION_MINUTES", "30"))
+
+# Optional API key. When set, all API requests must send it in the
+# 'X-API-Key' header. When unset, auth is DISABLED (development mode) — fine
+# locally, but a deployment exposed to a network MUST set this.
+API_KEY = os.getenv("API_KEY")

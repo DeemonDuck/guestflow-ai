@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Header, HTTPException
 from pydantic import BaseModel
 from agents.orchestrator import route_event
 from intent_classifier import classify_intent
@@ -9,10 +9,27 @@ from tools.ticket_tool import (
     escalate_stale_tickets,
 )
 from tools.profile_tool import get_profile, save_profile
-from config import ESCALATION_MINUTES
+from config import ESCALATION_MINUTES, API_KEY
 from typing import Optional
 
-app = FastAPI()
+
+def require_api_key(x_api_key: Optional[str] = Header(default=None)):
+    """Require a valid X-API-Key header — but only when an API key is configured.
+
+    If API_KEY is unset, authentication is disabled (development mode).
+    """
+    if API_KEY and x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
+
+if not API_KEY:
+    print(
+        "WARNING: API_KEY is not set — the API is UNAUTHENTICATED. "
+        "Set API_KEY in the environment before exposing this service on a network."
+    )
+
+# Apply the key check to every endpoint (no-op when API_KEY is unset)
+app = FastAPI(dependencies=[Depends(require_api_key)])
 
 
 class WebhookEvent(BaseModel):

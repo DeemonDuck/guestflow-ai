@@ -352,11 +352,21 @@ GuestFlow reads its settings from environment variables (e.g. a `.env` file):
 | `MANAGER_EMAIL`                     | Where escalation alerts go (falls back to `GMAIL_RECIPIENT`) |
 | `HOTEL_NAME`                        | Hotel name used in guest messaging                   |
 | `ESCALATION_MINUTES`                | Default staleness threshold for escalations (default `30`) |
+| `API_KEY`                           | If set, all API requests must send it as the `X-API-Key` header |
 
 Notifications are routed automatically: **guest-facing messages** (booking
 confirmation and resolved-ticket follow-up) go to the guest's stored
 `contact_email`, while **escalation alerts** go to `MANAGER_EMAIL`. Each falls
 back to `GMAIL_RECIPIENT` when a specific address isn't on file.
+
+## API Authentication
+
+When `API_KEY` is set, every endpoint requires the matching key in an
+`X-API-Key` request header (missing/incorrect keys get `401`). When `API_KEY`
+is **unset**, authentication is disabled for local development and the server
+prints a warning at startup. **Always set `API_KEY` before exposing the API on
+a network.** The Streamlit dashboard reads `API_KEY` from the environment and
+sends it automatically.
 
 ---
 
@@ -375,11 +385,11 @@ back to `GMAIL_RECIPIENT` when a specific address isn't on file.
 
 # 📌 Future Improvements
 
-* Real Email/SMS Integration
+* WhatsApp / SMS notifications (via a Business Solution Provider)
 * LangChain Tool Calling Agents
 * Cloud Deployment
 * Real CRM/PMS Integration
-* Authentication Layer
+* Multi-tenant support (per-hotel configuration & data isolation)
 * Advanced Semantic Vector Search
 
 ---
