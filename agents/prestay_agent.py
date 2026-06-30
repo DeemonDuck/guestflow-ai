@@ -6,7 +6,7 @@ from tools.crm_tool import (
 
 from memory import store_memory, retrieve_memory
 from tools.profile_tool import get_profile
-from llm_service import generate_guest_response
+from llm_service import generate_guest_response, wrap_untrusted, SECURITY_PREAMBLE
 
 def handle_prestay(event):
 
@@ -35,6 +35,8 @@ def handle_prestay(event):
         f"""
         You are a luxury hotel booking assistant.
 
+        {SECURITY_PREAMBLE}
+
         Respond in:
         - 2 short conversational sentences
         - warm hospitality tone
@@ -42,17 +44,17 @@ def handle_prestay(event):
         - no email formatting
         - no greetings/signatures
 
-        Guest Name:
-        {guest_name}
+        Guest Name (untrusted):
+        {wrap_untrusted(guest_name)}
 
         Guest Event:
         {event.event_type}
 
-        Known Guest Preferences:
-        {preferences}
+        Known Guest Preferences (untrusted):
+        {wrap_untrusted(preferences)}
 
-        Previous Guest Memory:
-        {memory_context}
+        Previous Guest Memory (untrusted):
+        {wrap_untrusted(memory_context)}
 
         CRM History:
         {history}

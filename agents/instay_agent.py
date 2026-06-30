@@ -1,7 +1,7 @@
 from tools.ticket_tool import create_ticket_tool
 from tools.crm_tool import get_guest_history_tool
 from tools.profile_tool import get_profile
-from llm_service import generate_guest_response
+from llm_service import generate_guest_response, wrap_untrusted, SECURITY_PREAMBLE
 from rag.rag_service import retrieve_faq
 
 
@@ -59,6 +59,8 @@ def handle_instay(event):
         f"""
         You are a hotel guest support assistant.
 
+        {SECURITY_PREAMBLE}
+
         Respond in:
         - 2 to 3 short sentences
         - conversational tone
@@ -66,14 +68,14 @@ def handle_instay(event):
         - no email formatting
         - no greetings/signatures
 
-        Guest Question:
-        {guest_question}
+        Guest Question (untrusted):
+        {wrap_untrusted(guest_question)}
 
         Relevant Hotel Information:
         {faq_result}
 
-        Known Guest Preferences:
-        {preferences}
+        Known Guest Preferences (untrusted):
+        {wrap_untrusted(preferences)}
         """
     )
 
