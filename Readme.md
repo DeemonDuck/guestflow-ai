@@ -52,6 +52,34 @@ It uses a multi-agent orchestration architecture to route events dynamically and
 * Real-time workflow execution
 * AI response visualization
 
+## ✅ Ticket Lifecycle & Escalation
+
+* Guest requests persisted as trackable tickets (`open → in_progress → resolved`)
+* Auto follow-up with the guest when an issue is resolved
+* Escalation timer alerts a manager about stale tickets (once each)
+
+## ✅ Guest Profiles & Personalisation
+
+* Durable per-guest preferences, contact and VIP status (merge-upsert)
+* Stored preferences injected into AI replies automatically
+* Profile-driven VIP prioritisation (no hardcoded list)
+
+## ✅ Review Management (Compliant)
+
+* Every guest invited to review — no "review gating"
+* Negative feedback privately alerts the manager for service recovery
+
+## ✅ Owner Analytics & Proactive Insights
+
+* ROI metrics (resolution rate/time, escalations, ratings)
+* Pattern detection: systemic issues, repeat rooms, recurring feedback themes
+* Optional manager daily digest email
+
+## ✅ Security Hardening
+
+* API-key auth (fail-closed), input validation, rate limiting
+* Email header-injection & prompt-injection protection, right-to-erasure
+
 ---
 
 # 🧠 System Architecture
@@ -96,10 +124,12 @@ It uses a multi-agent orchestration architecture to route events dynamically and
 | ------------ | --------------------------------- |
 | Backend API  | FastAPI                           |
 | Dashboard    | Streamlit                         |
-| Database     | SQLite                            |
-| AI Framework | LangChain Compatible Architecture |
-| Local LLM    | Ollama + Phi-3                    |
-| RAG Layer    | Custom Retrieval Pipeline         |
+| Database     | SQLite (WAL)                      |
+| Local LLM    | Ollama + Phi-3 (via langchain-ollama, swappable) |
+| RAG Layer    | ChromaDB vector retrieval         |
+| Guest Memory | Qdrant (embedded)                 |
+| Rate Limiting| SlowAPI                           |
+| Testing      | pytest                            |
 | Language     | Python                            |
 
 ---
@@ -118,7 +148,12 @@ guestflow-ai/
 ├── tools/
 │   ├── email_tool.py
 │   ├── crm_tool.py
-│   └── ticket_tool.py
+│   ├── ticket_tool.py
+│   ├── profile_tool.py
+│   ├── feedback_tool.py
+│   ├── analytics_tool.py
+│   ├── insights_tool.py
+│   └── digest_tool.py
 │
 ├── rag/
 │   ├── hotel_FAQ.txt
@@ -127,11 +162,23 @@ guestflow-ai/
 ├── database/
 │   └── db.py
 │
-├── dashboard.py
+├── tests/
+│   ├── conftest.py
+│   └── test_*.py
+│
+├── presentation/
+│   ├── generate_deck.py
+│   └── GuestFlow_AI.pptx
+│
+├── config.py
+├── intent_classifier.py
+├── memory.py
 ├── llm_service.py
+├── dashboard.py
+├── seed_demo.py
 ├── main.py
 ├── requirements.txt
-└── README.md
+└── Readme.md
 ```
 
 ---
@@ -517,11 +564,14 @@ is skipped if demo data already exists, so it is safe to re-run.
 
 # 🧪 Tests
 
-A `pytest` suite covers the core behaviour: ticket lifecycle (creation,
-status validation, resolve follow-up firing once, escalation alerting once),
-guest profile merge-upsert, review/feedback sentiment + compliance (review link
-offered to every guest, manager alerted only on negative feedback), analytics
-aggregation, and API key authentication.
+A `pytest` suite (48 tests) covers the core behaviour: ticket lifecycle
+(creation, status validation, resolve follow-up firing once, escalation alerting
+once), guest profile merge-upsert and right-to-erasure, review/feedback sentiment
++ compliance (review link offered to every guest, manager alerted only on
+negative feedback), proactive insights, analytics aggregation, the manager
+digest, intent classification, LLM fallback, and the security controls
+(API-key auth incl. fail-closed, input validation, email header-injection
+defence, rate limiting, prompt-injection fencing).
 
 ```bash
 pytest tests/ -q
