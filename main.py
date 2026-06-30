@@ -25,7 +25,7 @@ from tools.ticket_tool import (
     find_stale_tickets,
     escalate_stale_tickets,
 )
-from tools.profile_tool import get_profile, save_profile
+from tools.profile_tool import get_profile, save_profile, erase_guest_data
 from tools.feedback_tool import submit_feedback, list_feedback
 from tools.analytics_tool import get_analytics
 from tools.insights_tool import get_insights
@@ -153,6 +153,12 @@ async def write_profile(guest_name: str, update: ProfileUpdate):
         notes=update.notes,
     )
     return {"profile": profile}
+
+
+@app.delete("/profiles/{guest_name}")
+async def delete_profile(guest_name: str):
+    """Erase a guest's personal data (profile + feedback removed, tickets anonymized)."""
+    return erase_guest_data(guest_name)
 
 
 @app.get("/feedback")

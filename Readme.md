@@ -324,6 +324,7 @@ priority handling automatically.
 ```text
 GET  /profiles/{guest_name}     # read a profile (null if none exists)
 POST /profiles/{guest_name}     # create or update (merge upsert)
+DELETE /profiles/{guest_name}   # erase a guest's PII (right-to-erasure)
 ```
 
 ```json
@@ -440,6 +441,33 @@ metric cards — the "here's what you're paying for" screen.
 
 ---
 
+# 🔐 Security
+
+GuestFlow has been hardened against common API and data-handling risks:
+
+* **Authentication** — `API_KEY` (sent as `X-API-Key`) is checked in
+  constant time. Set `REQUIRE_AUTH=true` in production so the server refuses to
+  start without a key (fail-closed). Interactive docs (`/docs`, `/openapi.json`)
+  are disabled automatically when a key is configured.
+* **Input validation** — request bodies are validated (email format, rating
+  `1–5`, length limits) before any processing.
+* **Email safety** — values placed in email headers are stripped of CR/LF and
+  recipients are format-validated, preventing header injection.
+* **Rate limiting** — abusable/expensive endpoints (`/webhook`, `/feedback`,
+  `/digest/run`, `/tickets/escalations/run`) are throttled per client IP.
+* **Prompt-injection** — untrusted guest text is fenced and the model is
+  instructed to treat it as data, never as commands.
+* **Right to erasure** — `DELETE /profiles/{guest_name}` removes a guest's
+  profile and feedback and anonymizes their tickets.
+
+> ⚠️ **Deployment requirements:** always run behind **HTTPS/TLS** (the API key
+> and guest data travel in requests/responses), and set `API_KEY` +
+> `REQUIRE_AUTH`. SQLite uses WAL mode for safer concurrency, but a real
+> multi-hotel deployment should move to **Postgres** and add **encryption at
+> rest** for guest PII.
+
+---
+
 # ⚙️ Configuration
 
 GuestFlow reads its settings from environment variables (e.g. a `.env` file):
@@ -453,6 +481,7 @@ GuestFlow reads its settings from environment variables (e.g. a `.env` file):
 | `ESCALATION_MINUTES`                | Default staleness threshold for escalations (default `30`) |
 | `LLM_MODEL` / `LLM_TEMPERATURE`     | Ollama model + temperature (default `phi3` / `0.5`)  |
 | `API_KEY`                           | If set, all API requests must send it as the `X-API-Key` header |
+| `REQUIRE_AUTH`                      | If `true`, the server refuses to start without `API_KEY` (fail-closed) |
 | `REVIEW_LINK`                       | Public review URL included in every guest feedback request |
 | `REVIEW_ALERT_THRESHOLD`            | Ratings at/below this (1-5) alert the manager (default `3`) |
 

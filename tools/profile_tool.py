@@ -83,3 +83,37 @@ def save_profile(
     conn.commit()
     print(f"\n GUEST PROFILE SAVED — {guest_name}")
     return get_profile(guest_name)
+
+
+def erase_guest_data(guest_name: str) -> dict:
+    """Right-to-erasure: remove a guest's PII.
+
+    Deletes the profile and feedback outright, and anonymizes their tickets
+    (kept for operational stats but stripped of the guest's identity).
+    """
+    cursor.execute("DELETE FROM guest_profiles WHERE guest_name = ?", (guest_name,))
+    profiles_deleted = cursor.rowcount
+
+    cursor.execute("DELETE FROM feedback WHERE guest_name = ?", (guest_name,))
+    feedback_deleted = cursor.rowcount
+
+    cursor.execute(
+        "UPDATE tickets SET guest_name = '[deleted]' WHERE guest_name = ?",
+        (guest_name,)
+    )
+    tickets_anonymized = cursor.rowcount
+
+    cursor.execute("DELETE FROM guest_events WHERE guest_name = ?", (guest_name,))
+    events_deleted = cursor.rowcount
+
+    conn.commit()
+    print(f"\n GUEST DATA ERASED — {guest_name}")
+
+    return {
+        "status": "erased",
+        "guest_name": guest_name,
+        "profiles_deleted": profiles_deleted,
+        "feedback_deleted": feedback_deleted,
+        "tickets_anonymized": tickets_anonymized,
+        "events_deleted": events_deleted,
+    }

@@ -9,6 +9,12 @@ DB_PATH = os.getenv("GUESTFLOW_DB", "guestflow.db")
 # Connect to SQLite database
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 
+# WAL mode allows concurrent readers alongside a writer, and a busy timeout lets
+# operations wait briefly for a lock instead of failing — safer under load.
+# (A real production deployment should move to Postgres; this is a mitigation.)
+conn.execute("PRAGMA journal_mode=WAL")
+conn.execute("PRAGMA busy_timeout=5000")
+
 # Cursor helps execute SQL commands
 cursor = conn.cursor()
 
