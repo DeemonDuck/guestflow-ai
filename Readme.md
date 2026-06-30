@@ -341,6 +341,47 @@ existing profile so preferences, VIP status and notes can be edited and saved.
 
 ---
 
+# ⭐ Review Management
+
+After checkout, GuestFlow asks every guest for feedback and helps the hotel
+protect its rating — **without** any practice that would violate review
+platform policies.
+
+## How it works
+
+* Every guest receives a feedback request that includes the public review link
+  (when `REVIEW_LINK` is configured). The invitation is **never** conditioned on
+  how the guest rates their stay.
+* When a guest submits **negative** feedback (a low rating, or a comment with
+  negative wording), the manager is privately alerted so they can recover the
+  experience quickly.
+* That alert is an internal operations signal only — it never blocks, hides or
+  diverts the guest's ability to post a public review.
+
+> ⚠️ **Compliance:** selectively soliciting public reviews only from happy
+> guests ("review gating") violates Google's review policies and FTC guidance.
+> GuestFlow intentionally offers the review invitation to **all** guests; the
+> sentiment check is used solely to trigger internal service recovery.
+
+## Feedback API
+
+```text
+GET  /feedback                 # list all submitted feedback
+POST /feedback/{guest_name}     # submit a rating (1-5) and/or a comment
+```
+
+```json
+{
+  "rating": 2,
+  "comment": "The room was not clean."
+}
+```
+
+Ratings at or below `REVIEW_ALERT_THRESHOLD` (default `3`) flag the feedback as
+negative and alert the manager.
+
+---
+
 # ⚙️ Configuration
 
 GuestFlow reads its settings from environment variables (e.g. a `.env` file):
@@ -353,6 +394,8 @@ GuestFlow reads its settings from environment variables (e.g. a `.env` file):
 | `HOTEL_NAME`                        | Hotel name used in guest messaging                   |
 | `ESCALATION_MINUTES`                | Default staleness threshold for escalations (default `30`) |
 | `API_KEY`                           | If set, all API requests must send it as the `X-API-Key` header |
+| `REVIEW_LINK`                       | Public review URL included in every guest feedback request |
+| `REVIEW_ALERT_THRESHOLD`            | Ratings at/below this (1-5) alert the manager (default `3`) |
 
 Notifications are routed automatically: **guest-facing messages** (booking
 confirmation and resolved-ticket follow-up) go to the guest's stored

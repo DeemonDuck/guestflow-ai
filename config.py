@@ -23,3 +23,12 @@ ESCALATION_MINUTES = int(os.getenv("ESCALATION_MINUTES", "30"))
 # 'X-API-Key' header. When unset, auth is DISABLED (development mode) — fine
 # locally, but a deployment exposed to a network MUST set this.
 API_KEY = os.getenv("API_KEY")
+
+# Public review link (e.g. Google review URL). This is offered to EVERY guest
+# regardless of how they rate their stay — never conditioned on a positive
+# rating (conditioning it would be "review gating" and is not allowed).
+REVIEW_LINK = os.getenv("REVIEW_LINK", "")
+
+# Ratings (1-5) at or below this threshold trigger a private manager alert for
+# service recovery. This does NOT affect the guest's public review invitation.
+REVIEW_ALERT_THRESHOLD = int(os.getenv("REVIEW_ALERT_THRESHOLD", "3"))

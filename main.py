@@ -9,6 +9,7 @@ from tools.ticket_tool import (
     escalate_stale_tickets,
 )
 from tools.profile_tool import get_profile, save_profile
+from tools.feedback_tool import submit_feedback, list_feedback
 from config import ESCALATION_MINUTES, API_KEY
 from typing import Optional
 
@@ -51,6 +52,11 @@ class ProfileUpdate(BaseModel):
     preferences: Optional[str] = None
     is_vip: Optional[bool] = None
     notes: Optional[str] = None
+
+
+class FeedbackSubmit(BaseModel):
+    rating: Optional[int] = None
+    comment: Optional[str] = None
 
 
 @app.post("/webhook")
@@ -112,3 +118,15 @@ async def write_profile(guest_name: str, update: ProfileUpdate):
         notes=update.notes,
     )
     return {"profile": profile}
+
+
+@app.get("/feedback")
+async def get_feedback():
+    """List all submitted guest feedback."""
+    return {"feedback": list_feedback()}
+
+
+@app.post("/feedback/{guest_name}")
+async def post_feedback(guest_name: str, feedback: FeedbackSubmit):
+    """Record a guest's post-stay feedback (alerts manager if negative)."""
+    return submit_feedback(guest_name, rating=feedback.rating, comment=feedback.comment)

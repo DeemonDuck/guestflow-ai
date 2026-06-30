@@ -1,4 +1,4 @@
-from tools.email_tool import send_email_tool
+from tools.feedback_tool import request_feedback
 
 
 def handle_poststay(event):
@@ -7,12 +7,9 @@ def handle_poststay(event):
 
     guest_name = event.guest_name
 
-    email_result = send_email_tool(
-        guest_name=guest_name,
-        message="Thank you for staying with us! Please share feedback.",
-        category="Post-Stay Feedback",
-        priority="Normal"
-    )
+    # Ask the guest for feedback. The public review invite (if configured) is
+    # included for every guest, never conditioned on sentiment.
+    email_result = request_feedback(guest_name)
 
     return {
         "agent": "PostStayAgent",

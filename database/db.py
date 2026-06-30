@@ -52,4 +52,17 @@ CREATE TABLE IF NOT EXISTS guest_profiles (
 )
 """)
 
+# Create feedback table (post-stay guest feedback for review management)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_name TEXT NOT NULL,
+    rating INTEGER,
+    comment TEXT,
+    sentiment TEXT,
+    manager_alerted INTEGER DEFAULT 0,
+    created_at TEXT
+)
+""")
+
 conn.commit()
