@@ -1,8 +1,11 @@
 import hmac
 
-from fastapi import FastAPI, Depends, Header, HTTPException
+from fastapi import FastAPI, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from config import ESCALATION_MINUTES, API_KEY, REQUIRE_AUTH
 
@@ -49,12 +52,18 @@ if not API_KEY:
 # Disable interactive docs / schema when a key is configured (production), so the
 # full API surface isn't publicly discoverable. They stay on for local dev.
 _docs_enabled = API_KEY is None
+
+# Rate limiter (per client IP) to curb abuse / DoS / email spam / LLM cost
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     dependencies=[Depends(require_api_key)],
     docs_url="/docs" if _docs_enabled else None,
     redoc_url="/redoc" if _docs_enabled else None,
     openapi_url="/openapi.json" if _docs_enabled else None,
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 class WebhookEvent(BaseModel):
@@ -84,7 +93,8 @@ class FeedbackSubmit(BaseModel):
 
 
 @app.post("/webhook")
-async def receive_webhook(event: WebhookEvent):
+@limiter.limit("60/minute")
+async def receive_webhook(request: Request, event: WebhookEvent):
 
     # Auto-detect intent if event_type not provided
     if not event.event_type:
@@ -120,7 +130,8 @@ async def get_escalations(minutes: int = ESCALATION_MINUTES):
 
 
 @app.post("/tickets/escalations/run")
-async def run_escalations(minutes: int = ESCALATION_MINUTES):
+@limiter.limit("12/minute")
+async def run_escalations(request: Request, minutes: int = ESCALATION_MINUTES):
     """Alert a manager about stale open tickets (each ticket escalated once)."""
     return {"minutes": minutes, "escalated": escalate_stale_tickets(minutes)}
 
@@ -151,7 +162,8 @@ async def get_feedback():
 
 
 @app.post("/feedback/{guest_name}")
-async def post_feedback(guest_name: str, feedback: FeedbackSubmit):
+@limiter.limit("30/minute")
+async def post_feedback(request: Request, guest_name: str, feedback: FeedbackSubmit):
     """Record a guest's post-stay feedback (alerts manager if negative)."""
     return submit_feedback(guest_name, rating=feedback.rating, comment=feedback.comment)
 
@@ -175,6 +187,7 @@ async def digest_preview():
 
 
 @app.post("/digest/run")
-async def digest_run():
+@limiter.limit("6/minute")
+async def digest_run(request: Request):
     """Compose and email the operations digest to the manager."""
     return send_digest()
