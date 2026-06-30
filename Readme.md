@@ -380,6 +380,10 @@ POST /feedback/{guest_name}     # submit a rating (1-5) and/or a comment
 Ratings at or below `REVIEW_ALERT_THRESHOLD` (default `3`) flag the feedback as
 negative and alert the manager.
 
+Staff can submit and review feedback from the **⭐ Feedback** tab in the
+Streamlit dashboard, which shows total/average rating, a negative count, and
+flags entries where the manager was alerted.
+
 ---
 
 # ⚙️ Configuration

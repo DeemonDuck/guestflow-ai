@@ -125,7 +125,9 @@ guest_question = st.sidebar.text_area(
 # -----------------------------
 # TABS: Workflow + Tickets
 # -----------------------------
-tab_workflow, tab_tickets, tab_profiles = st.tabs(["⚙️ Workflow", "🎫 Tickets", "👤 Profiles"])
+tab_workflow, tab_tickets, tab_profiles, tab_feedback = st.tabs(
+    ["⚙️ Workflow", "🎫 Tickets", "👤 Profiles", "⭐ Feedback"]
+)
 
 
 # =============================
@@ -369,3 +371,80 @@ with tab_profiles:
                     st.error("Save failed")
             except Exception as e:
                 st.error(f"Could not save profile: {e}")
+
+
+# =============================
+# FEEDBACK TAB
+# =============================
+with tab_feedback:
+
+    st.subheader("Review Management")
+    st.caption(
+        "Feedback is invited from every guest. Negative feedback privately "
+        "alerts the manager for service recovery — it never affects a guest's "
+        "ability to post a public review."
+    )
+
+    # ---- Submit feedback ----
+    st.markdown("### Submit Feedback")
+    fb_name = st.text_input("Guest name", key="fb_name")
+    fb_rating = st.slider("Rating", min_value=1, max_value=5, value=5, key="fb_rating")
+    fb_comment = st.text_area("Comment", key="fb_comment")
+
+    if st.button("Submit Feedback", key="fb_submit"):
+        if not fb_name:
+            st.warning("Enter a guest name first.")
+        else:
+            try:
+                resp = requests.post(
+                    f"{API_BASE}/feedback/{fb_name}",
+                    json={"rating": fb_rating, "comment": fb_comment or None},
+                    headers=HEADERS
+                )
+                res = resp.json()
+                sentiment = res.get("sentiment")
+                if sentiment == "negative":
+                    st.error(
+                        f"Recorded as **negative** — manager alerted "
+                        f"({res.get('manager_alerted')})."
+                    )
+                else:
+                    st.success(f"Recorded as **{sentiment}**.")
+            except Exception as e:
+                st.error(f"Could not submit feedback: {e}")
+
+    st.divider()
+
+    # ---- View feedback ----
+    st.markdown("### Collected Feedback")
+    try:
+        resp = requests.get(f"{API_BASE}/feedback", headers=HEADERS)
+        items = resp.json().get("feedback", [])
+
+        if not items:
+            st.info("No feedback submitted yet.")
+        else:
+            # Quick summary metrics
+            ratings = [i["rating"] for i in items if i.get("rating") is not None]
+            negatives = [i for i in items if i.get("sentiment") == "negative"]
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total", len(items))
+            with col2:
+                st.metric("Avg rating", round(sum(ratings) / len(ratings), 2) if ratings else "—")
+            with col3:
+                st.metric("Negative", len(negatives))
+
+            sentiment_icon = {"negative": "🔴", "positive": "🟢", "neutral": "⚪"}
+            for i in items:
+                icon = sentiment_icon.get(i.get("sentiment"), "⚪")
+                rating = i.get("rating")
+                rating_str = f"{rating}★" if rating is not None else "no rating"
+                with st.expander(f"{icon} {i['guest_name']} · {rating_str} · {i.get('created_at', '')}"):
+                    st.write(f"**Sentiment:** {i.get('sentiment')}")
+                    st.write(f"**Comment:** {i.get('comment') or '(none)'}")
+                    if i.get("manager_alerted"):
+                        st.warning("Manager was alerted for service recovery.")
+    except Exception as e:
+        st.error(f"Could not load feedback: {e}")
