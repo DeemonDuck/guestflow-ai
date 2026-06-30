@@ -11,6 +11,7 @@ from tools.ticket_tool import (
 from tools.profile_tool import get_profile, save_profile
 from tools.feedback_tool import submit_feedback, list_feedback
 from tools.analytics_tool import get_analytics
+from tools.insights_tool import get_insights
 from config import ESCALATION_MINUTES, API_KEY
 from typing import Optional
 
@@ -137,3 +138,9 @@ async def post_feedback(guest_name: str, feedback: FeedbackSubmit):
 async def analytics():
     """Owner-facing ROI metrics aggregated from tickets and feedback."""
     return get_analytics()
+
+
+@app.get("/insights")
+async def insights():
+    """Proactive operations insights (systemic issues, repeat rooms, feedback themes)."""
+    return {"insights": get_insights()}

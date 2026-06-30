@@ -386,6 +386,28 @@ flags entries where the manager was alerted.
 
 ---
 
+# 🔎 Proactive Insights
+
+Beyond answering guests, GuestFlow watches the data it collects and surfaces
+patterns a busy manager would otherwise miss:
+
+```text
+GET /insights
+```
+
+* **Systemic issues** — a cluster of similar tickets in the same area/time
+  window (e.g. "3 'Maintenance' tickets on floor 3 in 24h — likely one root
+  cause").
+* **Repeat rooms** — a single room generating many tickets.
+* **Feedback themes** — a topic recurring across negative reviews (e.g.
+  "'cleanliness' came up in 3 negative reviews").
+
+These appear at the top of the **📊 Analytics** dashboard tab. The pitch: *most
+hotel AI answers your guests — GuestFlow tells you what's about to become a
+problem.*
+
+---
+
 # 📊 Owner Analytics
 
 A single ROI view for the hotel owner, aggregated from the data GuestFlow

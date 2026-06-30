@@ -458,6 +458,22 @@ with tab_analytics:
     st.subheader("Owner Analytics")
     st.caption("The ROI picture: workload handled, resolution speed, and guest sentiment.")
 
+    # ---- Proactive insights (what's about to become a problem) ----
+    st.markdown("### 🔎 Insights")
+    try:
+        ins = requests.get(f"{API_BASE}/insights", headers=HEADERS).json().get("insights", [])
+        if not ins:
+            st.success("No issues detected — operations look healthy.")
+        else:
+            sev_icon = {"high": "🔴", "medium": "🟠", "low": "🟡"}
+            for item in ins:
+                icon = sev_icon.get(item.get("severity"), "🔸")
+                st.warning(f"{icon} {item.get('message')}")
+    except Exception as e:
+        st.error(f"Could not load insights: {e}")
+
+    st.divider()
+
     try:
         resp = requests.get(f"{API_BASE}/analytics", headers=HEADERS)
         data = resp.json()
