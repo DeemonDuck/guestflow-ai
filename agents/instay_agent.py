@@ -1,4 +1,5 @@
 from tools.ticket_tool import create_ticket_tool
+from tools.crm_tool import get_guest_history_tool
 from llm_service import generate_guest_response
 from rag.rag_service import retrieve_faq
 
@@ -79,6 +80,9 @@ def handle_instay(event):
         time=getattr(event, "time", "N/A")
     )
 
+    # Prior CRM events for this guest (context for staff)
+    history = get_guest_history_tool(guest_name)
+
     # Return workflow result
     return {
         "agent": "InStayAgent",
@@ -86,5 +90,6 @@ def handle_instay(event):
         "ai_response": ai_response,
         "ticket": ticket_result,
         "is_vip": is_vip,
-        "escalation_required": escalation_required
+        "escalation_required": escalation_required,
+        "history": history
     }

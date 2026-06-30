@@ -203,25 +203,28 @@ with tab_workflow:
                     )
                 )
 
-                # FAQ Result
-                st.subheader("Retrieved FAQ")
-
-                st.info(
-                    workflow_result.get(
-                        "faq_result",
-                        "No FAQ retrieved"
+                # Ticket (created for in-stay guest requests)
+                ticket = workflow_result.get("ticket")
+                if ticket and ticket.get("ticket_id"):
+                    st.subheader("Ticket Created")
+                    st.write(
+                        f"#{ticket['ticket_id']} · "
+                        f"{ticket.get('category', 'General')} · "
+                        f"{ticket.get('priority', 'Normal')} · "
+                        f"[{ticket.get('ticket_status', 'open')}]"
                     )
-                )
 
-                # Guest History
-                st.subheader("Guest History")
+                # FAQ Result (only for requests that retrieved one)
+                faq_result = workflow_result.get("faq_result")
+                if faq_result:
+                    st.subheader("Retrieved FAQ")
+                    st.info(faq_result)
 
-                st.write(
-                    workflow_result.get(
-                        "history",
-                        []
-                    )
-                )
+                # Guest History (only when the guest has prior events)
+                history = workflow_result.get("history")
+                if history:
+                    st.subheader("Guest History")
+                    st.write(history)
 
         except Exception as e:
 
