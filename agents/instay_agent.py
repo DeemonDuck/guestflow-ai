@@ -5,9 +5,6 @@ from llm_service import generate_guest_response
 from rag.rag_service import retrieve_faq
 
 
-VIP_GUESTS = ["Rahul", "Priya"]
-
-
 def handle_instay(event):
 
     print("Running In-Stay Agent")
@@ -20,6 +17,9 @@ def handle_instay(event):
     # Fallback if question missing
     if not guest_question:
         guest_question = "General guest assistance request"
+
+    # Load stored guest profile once (drives VIP status + personalisation)
+    profile = get_profile(guest_name)
 
     # Escalation detection
     escalation_required = False
@@ -36,8 +36,8 @@ def handle_instay(event):
     if any(word in guest_question.lower() for word in urgent_keywords):
         escalation_required = True
 
-    # VIP detection
-    is_vip = guest_name in VIP_GUESTS
+    # VIP detection — driven by the guest's stored profile
+    is_vip = bool(profile and profile.get("is_vip"))
 
     # Retrieve FAQ context
     faq_result = retrieve_faq(guest_question)
@@ -51,8 +51,7 @@ def handle_instay(event):
 
     print(f"\nFAQ MATCH: {faq_result}")
 
-    # Load stored guest preferences (if any) to personalise the reply
-    profile = get_profile(guest_name)
+    # Stored preferences (if any) to personalise the reply
     preferences = profile["preferences"] if profile and profile.get("preferences") else "None on file"
 
     # AI-generated response

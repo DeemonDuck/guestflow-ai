@@ -315,6 +315,10 @@ others, so partial updates are safe. When a guest has a profile, their stored
 preferences are injected into the AI prompt for both booking confirmations
 (pre-stay) and in-stay requests, so replies are personalised automatically.
 
+VIP prioritisation is **driven by the profile's `is_vip` flag** (no hardcoded
+guest list): when a VIP guest raises an in-stay request, the workflow enables
+priority handling automatically.
+
 ## Profile API
 
 ```text
