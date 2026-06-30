@@ -28,3 +28,6 @@ numpy==1.26.4
 
 # Testing
 pytest==9.1.1
+
+# Presentation generator (presentation/generate_deck.py)
+python-pptx==1.0.2
