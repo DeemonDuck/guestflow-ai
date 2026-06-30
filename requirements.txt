@@ -3,6 +3,7 @@ uvicorn==0.42.0
 streamlit==1.57.0
 requests==2.33.1
 pydantic==2.12.5
+email-validator==2.3.0
 python-dotenv==1.2.2
 
 langchain==1.2.16

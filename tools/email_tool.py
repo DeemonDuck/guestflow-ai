@@ -1,6 +1,8 @@
-import smtplib
 import os
+import re
+import smtplib
 from email.mime.text import MIMEText
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,6 +10,18 @@ load_dotenv()
 SENDER = os.getenv("GMAIL_SENDER")
 APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 RECIPIENT = os.getenv("GMAIL_RECIPIENT")
+
+# Basic single-address email shape (no spaces/newlines allowed)
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _clean_header(value: str) -> str:
+    """Strip CR/LF so user-supplied values can't inject extra email headers."""
+    return str(value).replace("\r", " ").replace("\n", " ").strip()
+
+
+def _valid_email(address: str) -> bool:
+    return bool(address) and bool(_EMAIL_RE.match(address))
 
 
 def send_email_tool(
@@ -23,7 +37,18 @@ def send_email_tool(
     # Fall back to the generic mailbox if no explicit recipient is given
     to_address = recipient or RECIPIENT
 
-    subject = f"[{priority}] {category} Request — Room {room_number} ({guest_name})"
+    # Reject malformed / injection-bearing recipients before sending
+    if not _valid_email(to_address):
+        print("EMAIL SKIPPED: invalid recipient address")
+        return {"status": "email_failed", "error": "invalid recipient address"}
+
+    # Sanitize every value that lands in a header to prevent header injection
+    s_priority = _clean_header(priority)
+    s_category = _clean_header(category)
+    s_room = _clean_header(room_number)
+    s_guest = _clean_header(guest_name)
+
+    subject = f"[{s_priority}] {s_category} Request — Room {s_room} ({s_guest})"
 
     body = f"""
 Guest Request Details
@@ -48,7 +73,8 @@ Message:
             server.login(SENDER, APP_PASSWORD)
             server.sendmail(SENDER, to_address, msg.as_string())
 
-        print(f"\n EMAIL SENT — to {to_address} | Room {room_number} | {category} | {priority}")
+        # Avoid logging PII (recipient address / guest name) in plain logs
+        print(f"EMAIL SENT — {s_category} | {s_priority}")
         return {
             "status": "email_sent",
             "guest": guest_name,
@@ -59,5 +85,6 @@ Message:
         }
 
     except Exception as e:
-        print(f"\n EMAIL FAILED: {e}")
-        return {"status": "email_failed", "error": str(e)}
+        # Log details server-side only; do not leak them back to the caller
+        print(f"EMAIL FAILED: {type(e).__name__}")
+        return {"status": "email_failed", "error": "email delivery failed"}

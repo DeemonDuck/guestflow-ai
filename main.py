@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, Header, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from agents.orchestrator import route_event
 from intent_classifier import classify_intent
 from tools.ticket_tool import (
@@ -37,29 +37,29 @@ app = FastAPI(dependencies=[Depends(require_api_key)])
 
 
 class WebhookEvent(BaseModel):
-    event_type: Optional[str] = None
-    guest_name: str
-    room_number: Optional[str] = "N/A"
-    category: Optional[str] = "General"
-    priority: Optional[str] = "Normal"
-    time: Optional[str] = "N/A"
-    guest_question: Optional[str] = None
+    event_type: Optional[str] = Field(default=None, max_length=50)
+    guest_name: str = Field(min_length=1, max_length=120)
+    room_number: Optional[str] = Field(default="N/A", max_length=20)
+    category: Optional[str] = Field(default="General", max_length=50)
+    priority: Optional[str] = Field(default="Normal", max_length=20)
+    time: Optional[str] = Field(default="N/A", max_length=50)
+    guest_question: Optional[str] = Field(default=None, max_length=2000)
 
 
 class TicketStatusUpdate(BaseModel):
-    status: str
+    status: str = Field(max_length=20)
 
 
 class ProfileUpdate(BaseModel):
-    contact_email: Optional[str] = None
-    preferences: Optional[str] = None
+    contact_email: Optional[EmailStr] = None
+    preferences: Optional[str] = Field(default=None, max_length=1000)
     is_vip: Optional[bool] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(default=None, max_length=1000)
 
 
 class FeedbackSubmit(BaseModel):
-    rating: Optional[int] = None
-    comment: Optional[str] = None
+    rating: Optional[int] = Field(default=None, ge=1, le=5)
+    comment: Optional[str] = Field(default=None, max_length=2000)
 
 
 @app.post("/webhook")
