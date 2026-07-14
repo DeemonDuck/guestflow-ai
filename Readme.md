@@ -609,3 +609,17 @@ and stub all outbound email, so the suite sends nothing and touches no real data
 # 👨‍💻 Author
 
 Developed by Ridham Taneja
+
+---
+
+# 📄 License
+
+GuestFlow AI is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+
+**Free for noncommercial use.** You may read, run, modify, and share the code for personal projects, study, research, hobby work, and use by charities, schools, and government institutions.
+
+**Commercial use requires a paid license.** This includes any hotel, hospitality group, agency, or other business running GuestFlow AI as part of its operations, and any resale or hosting of it as a service. Self-hosting by a business is still commercial use and is not covered by this license.
+
+For a commercial license, contact Ridham Taneja.
+
+Copyright (c) 2026 Ridham Taneja
