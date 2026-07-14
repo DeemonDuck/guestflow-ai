@@ -8,5 +8,9 @@ chromadb/
 
 # Runtime data (should not be version-controlled)
 *.db
+# SQLite WAL-mode sidecar files (transient; regenerated at runtime)
+*.db-shm
+*.db-wal
 qdrant_storage/
 rag/chroma_storage/
+logs/
